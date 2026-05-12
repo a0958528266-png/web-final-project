@@ -481,24 +481,12 @@
               </div>
             </div>
             <div>
-              <div style="font-size:12px;color:var(--muted);margin-bottom:6px">Time Slot</div>
-              <select class="form-input" id="a-timeslot">
-                <option value="">— select slot —</option>
-                <option>08:10 – 09:00</option>
-                <option>09:10 – 10:00</option>
-                <option>10:10 – 11:00</option>
-                <option>11:10 – 12:00</option>
-                <option>12:10 – 13:00</option>
-                <option>13:10 – 14:00</option>
-                <option>14:10 – 15:00</option>
-                <option>15:10 – 16:00</option>
-                <option>16:10 – 17:00</option>
-                <option>17:10 – 18:00</option>
-                <option>18:30 – 19:20</option>
-                <option>19:25 – 20:15</option>
-                <option>20:20 – 21:10</option>
-                <option>21:15 – 22:05</option>
-              </select>
+              <div style="font-size:12px;color:var(--muted);margin-bottom:6px">Start Time</div>
+              <input type="time" class="form-input" id="a-time-start" onchange="updateSchedulePreview()">
+            </div>
+            <div>
+              <div style="font-size:12px;color:var(--muted);margin-bottom:6px">End Time</div>
+              <input type="time" class="form-input" id="a-time-end" onchange="updateSchedulePreview()">
             </div>
           </div>
           <div style="margin-top:8px;font-size:12px;color:var(--muted)">Preview: <strong id="schedule-preview" style="color:var(--navy)">—</strong></div>
@@ -1105,18 +1093,22 @@ document.addEventListener('click', e => {
 });
 function updateSchedulePreview() {
   const days = [...document.querySelectorAll('.day-btn.selected')].map(b => b.dataset.day).join('/');
-  const slot = document.getElementById('a-timeslot')?.value || '';
-  const preview = days && slot ? `${days} ${slot}` : days || slot || '—';
+  const start = document.getElementById('a-time-start')?.value || '';
+  const end = document.getElementById('a-time-end')?.value || '';
+  const time = start && end ? `${start} – ${end}` : (start || end || '');
+  const preview = days && time ? `${days} ${time}` : days || time || '—';
   const el = document.getElementById('schedule-preview');
   if (el) el.textContent = preview;
 }
 document.addEventListener('change', e => {
-  if (e.target.id === 'a-timeslot') updateSchedulePreview();
+  if (e.target.id === 'a-time-start' || e.target.id === 'a-time-end') updateSchedulePreview();
 });
 function getScheduleValue() {
   const days = [...document.querySelectorAll('.day-btn.selected')].map(b => b.dataset.day).join('/');
-  const slot = document.getElementById('a-timeslot')?.value || '';
-  return days && slot ? `${days} ${slot}` : (days || slot || null);
+  const start = document.getElementById('a-time-start')?.value || '';
+  const end = document.getElementById('a-time-end')?.value || '';
+  const time = start && end ? `${start} – ${end}` : (start || end || '');
+  return days && time ? `${days} ${time}` : (days || time || null);
 }
 
 // ─── Admin ───────────────────────────────────────────────────
@@ -1207,7 +1199,8 @@ async function adminAddCourse() {
   // Reset form
   ['a-name','a-code','a-desc','a-syllabus'].forEach(id => document.getElementById(id).value = '');
   document.querySelectorAll('.day-btn.selected').forEach(b => b.classList.remove('selected'));
-  document.getElementById('a-timeslot').value = '';
+  document.getElementById('a-time-start').value = '';
+  document.getElementById('a-time-end').value = '';
   document.getElementById('schedule-preview').textContent = '—';
 
   await loadCourses();
