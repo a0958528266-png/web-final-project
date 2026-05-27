@@ -4,11 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CourseHub</title>
-
-<!-- ══════════════════════════════════════════════
-     STEP 1: Replace these two values with your own
-     from Supabase → Project Settings → API
-     ══════════════════════════════════════════════ -->
 <script>
   const SUPABASE_URL = 'https://tutmaixuxdalglelpsrf.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_O4qX7rq5TUvD4LFz4F8Jxw_yz1awAlM';
@@ -273,12 +268,51 @@
   .pw-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--light);font-size:13px;padding:0;font-family:'DM Sans',sans-serif}
   .error-msg{font-size:12px;color:var(--red);margin-top:6px;display:none}
   .error-msg.show{display:block}
+
+  /* ── SCHEDULE SIDEBAR ── */
+  .schedule-sidebar{position:fixed;top:60px;left:0;bottom:0;width:240px;background:var(--navy);z-index:90;transform:translateX(-100%);transition:transform .3s cubic-bezier(.4,0,.2,1);overflow-y:auto;display:flex;flex-direction:column}
+  .schedule-sidebar.open{transform:translateX(0)}
+  .sidebar-header{padding:20px 16px 12px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:space-between}
+  .sidebar-title{font-family:'Playfair Display',serif;font-size:15px;color:#fff;font-weight:700}
+  .sidebar-close{background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:18px;line-height:1;padding:0}
+  .sidebar-close:hover{color:#fff}
+  .sidebar-empty{padding:32px 16px;text-align:center;color:rgba(255,255,255,.35);font-size:13px;line-height:1.6}
+  .sidebar-course{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.06);cursor:pointer;transition:background .15s}
+  .sidebar-course:hover{background:rgba(255,255,255,.06)}
+  .sidebar-code{font-size:11px;font-weight:600;letter-spacing:1px;color:var(--gold);text-transform:uppercase;margin-bottom:3px}
+  .sidebar-name{font-size:13px;color:#fff;font-weight:500;margin-bottom:4px;line-height:1.3}
+  .sidebar-schedule{font-size:11px;color:rgba(255,255,255,.45);display:flex;align-items:center;gap:4px}
+  .sidebar-days{display:flex;gap:3px;flex-wrap:wrap;margin-top:6px}
+  .sidebar-day{font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);font-weight:500}
+  .sidebar-day.active-day{background:rgba(201,168,76,.25);color:var(--gold)}
+  .sidebar-count{font-size:11px;color:rgba(255,255,255,.4);padding:10px 16px 6px;text-transform:uppercase;letter-spacing:.5px}
+  .sidebar-toggle{position:fixed;left:0;top:50%;transform:translateY(-50%);background:var(--navy);color:var(--gold);border:none;border-radius:0 8px 8px 0;padding:12px 8px;cursor:pointer;z-index:91;transition:all .2s;writing-mode:vertical-rl;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;letter-spacing:.5px;display:flex;align-items:center;gap:6px}
+  .schedule-sidebar.open ~ .sidebar-toggle,.sidebar-toggle.hidden{display:none}
+  .sidebar-badge{background:var(--gold);color:var(--navy);border-radius:50%;width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;writing-mode:horizontal-tb}
+  /* push content right when sidebar open */
+  body.sidebar-open .page{margin-left:240px;transition:margin .3s}
+  body.sidebar-open nav{padding-left:calc(240px + 2rem)}
 </style>
 </head>
 <body>
 
 <!-- TOAST -->
 <div id="toast"></div>
+
+<!-- SCHEDULE SIDEBAR -->
+<div class="schedule-sidebar" id="schedule-sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-title">📅 My Schedule</div>
+    <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
+  </div>
+  <div id="sidebar-content">
+    <div class="sidebar-empty">No classes saved yet.<br>Bookmark a course to see it here.</div>
+  </div>
+</div>
+<button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()">
+  <span class="sidebar-badge" id="sidebar-badge">0</span>
+  Schedule
+</button>
 
 <!-- NAV -->
 <nav>
@@ -808,6 +842,7 @@ async function loadCourses() {
   if (error) { showToast('Could not load courses', 'error'); return; }
   allCourses = data || [];
   renderGrids();
+  renderSidebar();
 }
 
 async function loadStats() {
@@ -826,6 +861,59 @@ async function loadShortlist() {
   const { data } = await sb.from('shortlists').select('course_id').eq('user_id', currentUser.id);
   shortlistIds = new Set((data || []).map(r => r.course_id));
   renderGrids();
+  renderSidebar();
+}
+
+// ─── Schedule Sidebar ────────────────────────────────────────
+function toggleSidebar() {
+  const sidebar = document.getElementById('schedule-sidebar');
+  const toggle = document.getElementById('sidebar-toggle');
+  const isOpen = sidebar.classList.toggle('open');
+  toggle.classList.toggle('hidden', isOpen);
+  document.body.classList.toggle('sidebar-open', isOpen);
+}
+
+function renderSidebar() {
+  const saved = allCourses.filter(c => shortlistIds.has(c.id));
+  const badge = document.getElementById('sidebar-badge');
+  if (badge) badge.textContent = saved.length;
+
+  const content = document.getElementById('sidebar-content');
+  if (!content) return;
+
+  if (!currentUser) {
+    content.innerHTML = `<div class="sidebar-empty">Sign in to track your schedule.</div>`;
+    return;
+  }
+  if (!saved.length) {
+    content.innerHTML = `<div class="sidebar-empty">No classes saved yet.<br>Bookmark a course to see it here.</div>`;
+    return;
+  }
+
+  const today = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date().getDay()];
+
+  content.innerHTML = `<div class="sidebar-count">${saved.length} course${saved.length !== 1 ? 's' : ''}</div>` +
+    saved.map(c => {
+      const schedule = c.schedule || '';
+      // Parse days from schedule string e.g. "Mon/Wed 09:00 – 11:00"
+      const dayMatch = schedule.match(/^([A-Za-z/]+)/);
+      const timeMatch = schedule.match(/(\d{2}:\d{2})\s*[–-]\s*(\d{2}:\d{2})/);
+      const days = dayMatch ? dayMatch[1].split('/') : [];
+      const time = timeMatch ? `${timeMatch[1]} – ${timeMatch[2]}` : (schedule || 'No schedule');
+
+      const dayPills = days.length
+        ? `<div class="sidebar-days">${days.map(d =>
+            `<span class="sidebar-day ${d === today ? 'active-day' : ''}">${d}</span>`
+          ).join('')}</div>`
+        : '';
+
+      return `<div class="sidebar-course" onclick="openProfile(${c.id})">
+        <div class="sidebar-code">${escHtml(c.code || c.name.slice(0,6).toUpperCase())}</div>
+        <div class="sidebar-name">${escHtml(c.name)}</div>
+        <div class="sidebar-schedule">🕐 ${escHtml(time)}</div>
+        ${dayPills}
+      </div>`;
+    }).join('');
 }
 
 function loadDeptFilters() {
@@ -992,6 +1080,7 @@ async function toggleBookmarkById(id) {
     showToast('Saved to shortlist!', 'success');
   }
   renderGrids();
+  renderSidebar();
   if (currentCourseId === id) {
     document.getElementById('profile-save-btn').textContent = shortlistIds.has(id) ? '★ Saved' : '★ Add to shortlist';
   }
