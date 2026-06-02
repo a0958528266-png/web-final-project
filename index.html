@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CourseHub</title>
+
+<!-- ══════════════════════════════════════════════
+     STEP 1: Replace these two values with your own
+     from Supabase → Project Settings → API
+     ══════════════════════════════════════════════ -->
 <script>
   const SUPABASE_URL = 'https://tutmaixuxdalglelpsrf.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_O4qX7rq5TUvD4LFz4F8Jxw_yz1awAlM';
@@ -1405,6 +1410,13 @@ async function submitSignup() {
   const fname = document.getElementById('su-fname').value.trim();
   const lname = document.getElementById('su-lname').value.trim();
   let ok = true;
+
+     const allowed = email.endsWith('@o365.fcu.edu.tw');
+  showErr('su-email-err', !allowed);
+  document.getElementById('su-email-err').textContent = allowed 
+    ? '' : 'Only @o365.fcu.edu.tw emails are allowed.';
+  if (!allowed) ok = false;
+     
   showErr('su-email-err', !email.includes('@')); if (!email.includes('@')) ok = false;
   showErr('su-pw-err', pw.length < 8); if (pw.length < 8) ok = false;
   if (!ok) return;
