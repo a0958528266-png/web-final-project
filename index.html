@@ -4,11 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CourseHub</title>
-
 <script>
   const SUPABASE_URL = 'https://tutmaixuxdalglelpsrf.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_O4qX7rq5TUvD4LFz4F8Jxw_yz1awAlM';
 </script>
+
+<!-- Supabase JS SDK (loaded from CDN, no npm needed) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
@@ -212,46 +213,7 @@
   .day-btn.selected{background:var(--navy);border-color:var(--navy);color:#fff}
   .day-btn:hover:not(.selected){border-color:var(--teal);color:var(--teal)}
 
-  /* ── PROFESSOR PAGE ── */
-  .prof-hero{background:linear-gradient(135deg,var(--navy) 0%,#1B3A5C 100%);padding:48px 2rem 40px;color:#fff}
-  .prof-avatar-big{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold2));display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--navy);margin-bottom:20px;flex-shrink:0}
-  .prof-hero-top{display:flex;align-items:center;gap:24px;margin-bottom:20px}
-  .prof-name{font-family:'Playfair Display',serif;font-size:32px;font-weight:700;color:#fff;margin-bottom:6px}
-  .prof-title{font-size:15px;color:rgba(255,255,255,.65);margin-bottom:4px}
-  .prof-dept{font-size:13px;color:var(--gold)}
-  .prof-body{max-width:1100px;margin:0 auto;padding:32px 2rem;display:grid;grid-template-columns:1fr 300px;gap:24px}
-  .prof-course-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:10px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:14px}
-  .prof-course-card:hover{border-color:var(--teal);transform:translateX(4px)}
-  .prof-course-code{font-size:11px;font-weight:600;letter-spacing:1px;color:var(--teal);text-transform:uppercase;margin-bottom:3px}
-  .prof-course-name{font-size:14px;font-weight:500;color:var(--navy)}
-  .prof-course-meta{font-size:12px;color:var(--muted);margin-top:2px}
-  .prof-stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:14px;text-align:center}
-  .prof-stat-num{font-family:'Playfair Display',serif;font-size:36px;font-weight:700;color:var(--navy)}
-  .prof-stat-lbl{font-size:12px;color:var(--muted);margin-top:4px}
-
-  /* ── REPORTING / MODERATION ── */
-  .mod-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:14px}
-  .mod-flag{display:inline-flex;align-items:center;gap:5px;background:#FEECEC;border:1px solid #F5C6C6;color:#C0392B;font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500;margin-bottom:10px}
-  .mod-course{font-size:12px;color:var(--muted);margin-bottom:6px}
-  .mod-body{font-size:14px;line-height:1.6;color:var(--text);background:var(--ice);border-radius:8px;padding:12px;margin-bottom:12px}
-  .mod-meta{font-size:12px;color:var(--light);margin-bottom:14px}
-  .mod-actions{display:flex;gap:8px}
-  .mod-btn{border:none;padding:8px 16px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s}
-  .mod-approve{background:#E1F5EE;color:#0F6E56}
-  .mod-approve:hover{background:#C3EBD8}
-  .mod-edit{background:#FEF3E2;color:#854F0B}
-  .mod-edit:hover{background:#FDEAC4}
-  .mod-remove{background:#FEECEC;color:#C0392B}
-  .mod-remove:hover{background:#FDD5D5}
-  .mod-log{background:var(--ice);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-top:8px}
-  .mod-log-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
-  .mod-log-row:last-child{border-bottom:none}
-  .mod-action-badge{font-size:11px;padding:2px 8px;border-radius:12px;font-weight:500}
-  .badge-approved{background:#E1F5EE;color:#0F6E56}
-  .badge-removed{background:#FEECEC;color:#C0392B}
-  .badge-edit{background:#FEF3E2;color:#854F0B}
-  .notif-dot{width:8px;height:8px;border-radius:50%;background:var(--red);display:inline-block;margin-left:4px;animation:pulse 1.5s infinite}
-  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  /* ── WRITE REVIEW MODAL ── */
   .review-modal{display:none;position:fixed;inset:0;background:rgba(10,22,40,.7);z-index:1000;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
   .review-modal.show{display:flex}
   .review-modal-box{background:#fff;border-radius:20px;width:540px;max-width:94vw;max-height:90vh;overflow-y:auto;padding:32px}
@@ -308,34 +270,28 @@
   .error-msg.show{display:block}
 
   /* ── SCHEDULE SIDEBAR ── */
-  .schedule-sidebar{position:fixed;top:60px;left:0;bottom:0;width:340px;background:#fff;z-index:90;transform:translateX(-100%);transition:transform .3s cubic-bezier(.4,0,.2,1);overflow-y:auto;display:flex;flex-direction:column;box-shadow:4px 0 24px rgba(0,0,0,.12)}
+  .schedule-sidebar{position:fixed;top:60px;left:0;bottom:0;width:240px;background:var(--navy);z-index:90;transform:translateX(-100%);transition:transform .3s cubic-bezier(.4,0,.2,1);overflow-y:auto;display:flex;flex-direction:column}
   .schedule-sidebar.open{transform:translateX(0)}
-  .sidebar-header{padding:14px 16px 10px;background:var(--navy);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:2}
-  .sidebar-title{font-family:'Playfair Display',serif;font-size:14px;color:#fff;font-weight:700}
-  .sidebar-subtitle{font-size:11px;color:rgba(255,255,255,.5);margin-top:2px}
-  .sidebar-close{background:rgba(255,255,255,.12);border:none;color:rgba(255,255,255,.7);cursor:pointer;font-size:14px;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all .2s}
-  .sidebar-close:hover{background:rgba(255,255,255,.25);color:#fff}
-  .sidebar-empty{padding:32px 16px;text-align:center;color:var(--muted);font-size:13px;line-height:1.6}
-
-  /* Timetable */
-  .timetable-wrap{padding:12px;flex:1}
-  .timetable{width:100%;border-collapse:collapse;font-size:11px}
-  .timetable th{background:#f5f0dc;color:#555;font-weight:600;text-align:center;padding:5px 3px;border:1px solid #d4cc9a;font-size:11px;white-space:nowrap}
-  .timetable th.period-head{background:#f5f0dc;width:28px;color:#888}
-  .timetable td{border:1px solid #d4cc9a;background:#fffff0;text-align:center;vertical-align:middle;height:36px;width:calc((100% - 28px)/7);position:relative;cursor:default}
-  .timetable td.has-course{background:#c8e6c9;cursor:pointer;transition:background .15s}
-  .timetable td.has-course:hover{background:#a5d6a7}
-  .timetable td.today-col{background:#fefde8}
-  .timetable td.has-course.today-col{background:#a5d6a7}
-  .course-cell{font-size:10px;font-weight:600;color:#2e7d32;line-height:1.2;padding:2px}
-  .period-num{font-size:11px;color:#888;font-weight:500;text-align:center}
-  .timetable-footer{padding:8px 12px 12px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);text-align:center}
-
+  .sidebar-header{padding:20px 16px 12px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:space-between}
+  .sidebar-title{font-family:'Playfair Display',serif;font-size:15px;color:#fff;font-weight:700}
+  .sidebar-close{background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:18px;line-height:1;padding:0}
+  .sidebar-close:hover{color:#fff}
+  .sidebar-empty{padding:32px 16px;text-align:center;color:rgba(255,255,255,.35);font-size:13px;line-height:1.6}
+  .sidebar-course{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.06);cursor:pointer;transition:background .15s}
+  .sidebar-course:hover{background:rgba(255,255,255,.06)}
+  .sidebar-code{font-size:11px;font-weight:600;letter-spacing:1px;color:var(--gold);text-transform:uppercase;margin-bottom:3px}
+  .sidebar-name{font-size:13px;color:#fff;font-weight:500;margin-bottom:4px;line-height:1.3}
+  .sidebar-schedule{font-size:11px;color:rgba(255,255,255,.45);display:flex;align-items:center;gap:4px}
+  .sidebar-days{display:flex;gap:3px;flex-wrap:wrap;margin-top:6px}
+  .sidebar-day{font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);font-weight:500}
+  .sidebar-day.active-day{background:rgba(201,168,76,.25);color:var(--gold)}
+  .sidebar-count{font-size:11px;color:rgba(255,255,255,.4);padding:10px 16px 6px;text-transform:uppercase;letter-spacing:.5px}
   .sidebar-toggle{position:fixed;left:0;top:50%;transform:translateY(-50%);background:var(--navy);color:var(--gold);border:none;border-radius:0 8px 8px 0;padding:12px 8px;cursor:pointer;z-index:91;transition:all .2s;writing-mode:vertical-rl;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;letter-spacing:.5px;display:flex;align-items:center;gap:6px}
-  .sidebar-toggle.hidden{display:none}
+  .schedule-sidebar.open ~ .sidebar-toggle,.sidebar-toggle.hidden{display:none}
   .sidebar-badge{background:var(--gold);color:var(--navy);border-radius:50%;width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;writing-mode:horizontal-tb}
-  body.sidebar-open .page{margin-left:340px;transition:margin .3s}
-  body.sidebar-open nav{padding-left:calc(340px + 2rem)}
+  /* push content right when sidebar open */
+  body.sidebar-open .page{margin-left:240px;transition:margin .3s}
+  body.sidebar-open nav{padding-left:calc(240px + 2rem)}
 </style>
 </head>
 <body>
@@ -346,10 +302,7 @@
 <!-- SCHEDULE SIDEBAR -->
 <div class="schedule-sidebar" id="schedule-sidebar">
   <div class="sidebar-header">
-    <div>
-      <div class="sidebar-title">📅 My Schedule</div>
-      <div class="sidebar-subtitle" id="sidebar-subtitle">0 courses saved</div>
-    </div>
+    <div class="sidebar-title">📅 My Schedule</div>
     <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
   </div>
   <div id="sidebar-content">
@@ -367,8 +320,8 @@
   <div class="nav-links">
     <button class="nav-btn active" onclick="showPage('home',this)">Home</button>
     <button class="nav-btn" onclick="showPage('browse',this)">Browse</button>
-    <button class="nav-btn" onclick="showPage('shortlist',this)">Saved Courses</button>
-    <button class="nav-btn" id="admin-nav-btn" style="display:none" onclick="showPage('admin',this)">⚙ Admin <span class="notif-dot" id="admin-notif-dot" style="display:none"></span></button>
+    <button class="nav-btn" onclick="showPage('shortlist',this)">My Shortlist</button>
+    <button class="nav-btn" id="admin-nav-btn" style="display:none" onclick="showPage('admin',this)">⚙ Admin</button>
   </div>
   <div class="nav-right">
     <div class="logged-out"><button class="login-btn" onclick="openModal()">Log in</button></div>
@@ -451,7 +404,7 @@
       <div>
         <div class="profile-dept" id="p-dept"></div>
         <div class="profile-name" id="p-name"></div>
-        <div class="profile-prof" id="p-prof" style="cursor:pointer" onclick="openProfessorFromCourse()"></div>
+        <div class="profile-prof" id="p-prof"></div>
         <div class="profile-meta-tags" id="p-tags"></div>
       </div>
       <div class="profile-actions">
@@ -468,6 +421,10 @@
           <div><div class="rating-big" id="p-rating-big">—</div><div style="font-size:13px;color:var(--muted);margin-top:4px" id="p-review-count"></div></div>
           <div style="flex:1" id="p-rating-bars"></div>
         </div>
+      </div>
+      <div class="info-card">
+        <div class="info-card-title">Historical grade distribution</div>
+        <div class="grade-bars" id="grade-bars"></div>
       </div>
       <div style="margin-top:24px">
         <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--navy);margin-bottom:16px">Student reviews</div>
@@ -498,10 +455,10 @@
   </div>
 </div>
 
-<!-- ═══════════════════════ SAVED COURSES PAGE ═══════════════════════ -->
+<!-- ═══════════════════════ SHORTLIST PAGE ═══════════════════════ -->
 <div id="page-shortlist" class="page">
   <div class="shortlist-header">
-    <h1>Saved Courses</h1>
+    <h1>My Shortlist</h1>
     <p>Compare your saved courses before making your final selection</p>
   </div>
   <div class="shortlist-body" id="shortlist-body"></div>
@@ -658,67 +615,6 @@
       </table>
     </div>
 
-    <!-- ── MODERATION QUEUE ── -->
-    <div class="admin-section-title">
-      Moderation Queue
-      <span id="mod-count-badge" style="display:none;background:var(--red);color:#fff;font-size:11px;padding:2px 8px;border-radius:12px;font-family:'DM Sans',sans-serif;font-weight:500;margin-left:8px">0 flagged</span>
-    </div>
-    <p style="font-size:14px;color:var(--muted);margin-bottom:16px">Reviews reported by students appear here. Choose to Approve, Request Edit, or Remove each one.</p>
-    <div id="mod-queue-list"><div style="text-align:center;padding:32px;color:var(--muted);font-size:14px">No flagged reviews</div></div>
-
-    <!-- Moderation Log -->
-    <div class="admin-section-title" style="margin-top:32px">Moderation Log</div>
-    <div class="mod-log" id="mod-log-list"><div style="color:var(--muted);font-size:13px;text-align:center;padding:12px">No actions logged yet</div></div>
-
-  </div>
-</div>
-
-<!-- ═══════════════════════ PROFESSOR PAGE ═══════════════════════ -->
-<div id="page-professor" class="page">
-  <div class="prof-hero">
-    <button class="profile-back" onclick="showPage('browse',null)">← Back to results</button>
-    <div class="prof-hero-top">
-      <div class="prof-avatar-big" id="prof-avatar-big">?</div>
-      <div>
-        <div class="prof-name" id="prof-name">—</div>
-        <div class="prof-title" id="prof-title">—</div>
-        <div class="prof-dept" id="prof-dept">—</div>
-      </div>
-    </div>
-    <div style="display:flex;gap:12px;flex-wrap:wrap">
-      <div style="background:rgba(255,255,255,.1);border-radius:10px;padding:12px 20px;text-align:center">
-        <div style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:#fff" id="prof-rating-big">—</div>
-        <div style="font-size:12px;color:rgba(255,255,255,.55);margin-top:2px">Avg Rating</div>
-      </div>
-      <div style="background:rgba(255,255,255,.1);border-radius:10px;padding:12px 20px;text-align:center">
-        <div style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:#fff" id="prof-course-count">—</div>
-        <div style="font-size:12px;color:rgba(255,255,255,.55);margin-top:2px">Courses</div>
-      </div>
-      <div style="background:rgba(255,255,255,.1);border-radius:10px;padding:12px 20px;text-align:center">
-        <div style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:#fff" id="prof-review-count">—</div>
-        <div style="font-size:12px;color:rgba(255,255,255,.55);margin-top:2px">Reviews</div>
-      </div>
-    </div>
-  </div>
-  <div class="prof-body">
-    <div>
-      <div class="info-card" style="margin-bottom:20px">
-        <div class="info-card-title">Rating Breakdown</div>
-        <div id="prof-rating-bars"></div>
-      </div>
-      <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--navy);margin-bottom:16px">Student Reviews</div>
-      <div id="prof-reviews-list"></div>
-    </div>
-    <div>
-      <div class="info-card" style="margin-bottom:14px">
-        <div class="info-card-title">Courses Taught</div>
-        <div id="prof-courses-list"></div>
-      </div>
-      <div class="info-card">
-        <div class="info-card-title">Contact</div>
-        <div id="prof-contact"></div>
-      </div>
-    </div>
   </div>
 </div>
 
@@ -917,7 +813,6 @@ async function onSignedIn(user) {
   }
 
   await loadShortlist();
-  renderSidebar();
   closeModal();
 
   if (pendingAction) {
@@ -981,9 +876,7 @@ function toggleSidebar() {
 function renderSidebar() {
   const saved = allCourses.filter(c => shortlistIds.has(c.id));
   const badge = document.getElementById('sidebar-badge');
-  const subtitle = document.getElementById('sidebar-subtitle');
   if (badge) badge.textContent = saved.length;
-  if (subtitle) subtitle.textContent = `${saved.length} course${saved.length !== 1 ? 's' : ''} saved`;
 
   const content = document.getElementById('sidebar-content');
   if (!content) return;
@@ -997,67 +890,30 @@ function renderSidebar() {
     return;
   }
 
-  // Days and periods
-  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-  const todayIdx = [1,2,3,4,5,6,0].indexOf(new Date().getDay()); // Mon=0
-  const periods = 14;
+  const today = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date().getDay()];
 
-  // Build a map: day -> period -> course
-  // Parse schedule like "Mon/Wed 09:00 – 12:00"
-  // Map time to period number using approximate start times
-  const timeMap = {
-    '07':1,'08':2,'09':3,'10':4,'11':5,'12':6,
-    '13':7,'14':8,'15':9,'16':10,'17':11,'18':12,
-    '19':13,'20':14
-  };
+  content.innerHTML = `<div class="sidebar-count">${saved.length} course${saved.length !== 1 ? 's' : ''}</div>` +
+    saved.map(c => {
+      const schedule = c.schedule || '';
+      // Parse days from schedule string e.g. "Mon/Wed 09:00 – 11:00"
+      const dayMatch = schedule.match(/^([A-Za-z/]+)/);
+      const timeMatch = schedule.match(/(\d{2}:\d{2})\s*[–-]\s*(\d{2}:\d{2})/);
+      const days = dayMatch ? dayMatch[1].split('/') : [];
+      const time = timeMatch ? `${timeMatch[1]} – ${timeMatch[2]}` : (schedule || 'No schedule');
 
-  const grid = {}; // grid[dayIdx][period] = {code, name, id}
-  days.forEach((_,i) => grid[i] = {});
+      const dayPills = days.length
+        ? `<div class="sidebar-days">${days.map(d =>
+            `<span class="sidebar-day ${d === today ? 'active-day' : ''}">${d}</span>`
+          ).join('')}</div>`
+        : '';
 
-  saved.forEach(c => {
-    const s = c.schedule || '';
-    const dayMatch = s.match(/^([A-Za-z/]+)/);
-    const timeMatch = s.match(/(\d{2}):\d{2}/);
-    if (!dayMatch || !timeMatch) return;
-    const courseDays = dayMatch[1].split('/');
-    const hour = timeMatch[1];
-    const period = timeMap[hour] || null;
-    if (!period) return;
-    courseDays.forEach(d => {
-      const idx = days.indexOf(d);
-      if (idx === -1) return;
-      grid[idx][period] = { code: c.code || c.name.slice(0,4), name: c.name, id: c.id };
-    });
-  });
-
-  // Build table
-  let html = `<div class="timetable-wrap"><table class="timetable">
-    <thead><tr>
-      <th class="period-head"></th>
-      ${days.map((d,i) => `<th style="${i===todayIdx?'background:#fff9c4;color:#8a6200':''}">${d}</th>`).join('')}
-    </tr></thead>
-    <tbody>`;
-
-  for (let p = 1; p <= periods; p++) {
-    html += `<tr><td class="period-num">${p}</td>`;
-    days.forEach((d, i) => {
-      const cell = grid[i][p];
-      const isToday = i === todayIdx;
-      if (cell) {
-        html += `<td class="has-course${isToday?' today-col':''}" onclick="openProfile(${cell.id});toggleSidebar()" title="${escHtml(cell.name)}">
-          <div class="course-cell">${escHtml(cell.code)}</div>
-        </td>`;
-      } else {
-        html += `<td class="${isToday?'today-col':''}"></td>`;
-      }
-    });
-    html += `</tr>`;
-  }
-
-  html += `</tbody></table></div>
-  <div class="timetable-footer">Click a course cell to view details</div>`;
-
-  content.innerHTML = html;
+      return `<div class="sidebar-course" onclick="openProfile(${c.id})">
+        <div class="sidebar-code">${escHtml(c.code || c.name.slice(0,6).toUpperCase())}</div>
+        <div class="sidebar-name">${escHtml(c.name)}</div>
+        <div class="sidebar-schedule">🕐 ${escHtml(time)}</div>
+        ${dayPills}
+      </div>`;
+    }).join('');
 }
 
 function loadDeptFilters() {
@@ -1182,11 +1038,12 @@ async function openProfile(id) {
   const saved = shortlistIds.has(id);
   document.getElementById('profile-save-btn').textContent = saved ? '★ Saved' : '★ Add to shortlist';
 
+  buildGradeBars();
   await loadReviews(id);
 }
 
 async function loadReviews(courseId) {
-  const { data } = await sb.from('reviews').select('*').eq('course_id', courseId).eq('is_flagged', false).order('created_at', { ascending: false });
+  const { data } = await sb.from('reviews').select('*').eq('course_id', courseId).order('created_at', { ascending: false });
   const list = data || [];
   document.getElementById('reviews-list').innerHTML = list.length
     ? list.map(r => `<div class="review-card">
@@ -1196,201 +1053,16 @@ async function loadReviews(courseId) {
           <div>${starsHTML(r.rating_overall || 0)}</div>
         </div>
         <div class="review-text">${escHtml(r.body)}</div>
-        <div class="helpful-row">
-          <button class="helpful-btn" onclick="markHelpful('${r.id}',this)">👍 Helpful</button>
-          <span class="helpful-count">${r.helpful_count} found this helpful</span>
-          <button class="helpful-btn" style="margin-left:auto;color:var(--red);border-color:var(--red)" onclick="reportReview('${r.id}',this)">🚩 Report</button>
-        </div>
+        <div class="helpful-row"><button class="helpful-btn" onclick="markHelpful('${r.id}',this)">👍 Helpful</button><span class="helpful-count">${r.helpful_count} found this helpful</span></div>
       </div>`).join('')
     : '<div style="padding:32px;text-align:center;color:var(--muted);font-size:14px">No reviews yet — be the first!</div>';
 }
 
-// ─── Professor Page ───────────────────────────────────────────
-let currentProfessorId = null;
-
-function openProfessorFromCourse() {
-  const course = allCourses.find(c => c.id === currentCourseId);
-  if (!course?.professor_id) { showToast('Professor info not available', 'error'); return; }
-  openProfessor(course.professor_id);
-}
-
-async function openProfessor(profId) {
-  currentProfessorId = profId;
-  showPage('professor', null);
-
-  // Fetch professor details
-  const { data: prof } = await sb.from('professors').select('*, departments(name)').eq('id', profId).single();
-  if (!prof) { showToast('Professor not found', 'error'); return; }
-
-  // Initials from name
-  const parts = prof.full_name.trim().split(/\s+/);
-  const initials = parts.length >= 2 ? parts[0][0] + parts[parts.length-1][0] : parts[0][0];
-  document.getElementById('prof-avatar-big').textContent = initials.toUpperCase();
-  document.getElementById('prof-name').textContent = prof.full_name;
-  document.getElementById('prof-title').textContent = prof.title || 'Professor';
-  document.getElementById('prof-dept').textContent = prof.departments?.name || '';
-
-  // Contact
-  document.getElementById('prof-contact').innerHTML = prof.email
-    ? `<a href="mailto:${escHtml(prof.email)}" style="color:var(--teal);font-size:14px;text-decoration:none">✉ ${escHtml(prof.email)}</a>`
-    : `<span style="color:var(--muted);font-size:14px">No contact info available</span>`;
-
-  // Courses by this professor
-  const profCourses = allCourses.filter(c => c.professor_id === profId || c.professor === prof.full_name);
-  document.getElementById('prof-course-count').textContent = profCourses.length;
-  document.getElementById('prof-courses-list').innerHTML = profCourses.length
-    ? profCourses.map(c => `<div class="prof-course-card" onclick="openProfile(${c.id})">
-        <div style="flex:1">
-          <div class="prof-course-code">${escHtml(c.code || '')}</div>
-          <div class="prof-course-name">${escHtml(c.name)}</div>
-          <div class="prof-course-meta">${escHtml(c.schedule || '—')}</div>
-        </div>
-        <div style="text-align:right">
-          <div style="font-size:13px;font-weight:600;color:var(--navy)">${c.rating ? parseFloat(c.rating).toFixed(1) : '—'}</div>
-          <div style="font-size:11px;color:var(--muted)">${c.review_count || 0} reviews</div>
-        </div>
-      </div>`).join('')
-    : '<div style="color:var(--muted);font-size:13px;padding:8px 0">No courses found</div>';
-
-  // Aggregate ratings across all courses
-  const ratings = profCourses.filter(c => c.rating);
-  const avgRating = ratings.length ? (ratings.reduce((s,c) => s + parseFloat(c.rating), 0) / ratings.length) : 0;
-  const totalReviews = profCourses.reduce((s,c) => s + (c.review_count || 0), 0);
-  document.getElementById('prof-rating-big').textContent = avgRating > 0 ? avgRating.toFixed(1) : '—';
-  document.getElementById('prof-review-count').textContent = totalReviews;
-
-  // Rating bars (averaged)
-  const ratingKeys = [
-    ['Teaching Clarity', 'rating_teaching'],
-    ['Grading Fairness', 'rating_grading'],
-    ['Workload', 'rating_workload'],
-    ['Interaction', 'rating_interaction'],
-  ];
-  document.getElementById('prof-rating-bars').innerHTML = ratingKeys.map(([label, key]) => {
-    const vals = profCourses.map(c => parseFloat(c[key])).filter(v => !isNaN(v) && v > 0);
-    const avg = vals.length ? vals.reduce((a,b) => a+b, 0) / vals.length : 0;
-    return `<div class="rating-row"><span class="rating-label">${label}</span><div class="rating-bar-wrap"><div class="rating-bar" style="width:${avg/5*100}%"></div></div><span class="rating-num">${avg > 0 ? avg.toFixed(1) : '—'}</span></div>`;
-  }).join('');
-
-  // Load reviews across all professor's courses
-  if (profCourses.length) {
-    const courseIds = profCourses.map(c => c.id);
-    const { data: reviews } = await sb.from('reviews').select('*, courses(name)').in('course_id', courseIds).eq('is_flagged', false).order('created_at', { ascending: false }).limit(20);
-    const list = reviews || [];
-    document.getElementById('prof-reviews-list').innerHTML = list.length
-      ? list.map(r => `<div class="review-card">
-          <div class="review-top">
-            <div class="reviewer"><div class="reviewer-avatar">${r.is_anonymous ? '?' : '👤'}</div>
-            <div><div class="reviewer-name">${r.is_anonymous ? 'Anonymous' : 'Student'}</div>
-            <div class="reviewer-date">${escHtml(r.courses?.name || '')} · ${r.semester || ''}</div></div></div>
-            <div>${starsHTML(r.rating_overall || 0)}</div>
-          </div>
-          <div class="review-text">${escHtml(r.body)}</div>
-          <div class="helpful-row">
-            <button class="helpful-btn" onclick="markHelpful('${r.id}',this)">👍 Helpful</button>
-            <span class="helpful-count">${r.helpful_count} found this helpful</span>
-            <button class="helpful-btn" style="margin-left:auto;color:var(--red);border-color:var(--red)" onclick="reportReview('${r.id}',this)">🚩 Report</button>
-          </div>
-        </div>`).join('')
-      : '<div style="padding:32px;text-align:center;color:var(--muted);font-size:14px">No reviews yet for this professor.</div>';
-  }
-}
-
-// ─── Report System ────────────────────────────────────────────
-async function reportReview(reviewId, btn) {
-  if (!currentUser) { openModal(); return; }
-  if (!confirm('Report this review as inappropriate?')) return;
-  const { error } = await sb.from('reviews').update({ is_flagged: true }).eq('id', reviewId);
-  if (!error) {
-    btn.textContent = '🚩 Reported';
-    btn.disabled = true;
-    btn.style.opacity = '0.5';
-    showToast('Review reported to admin', 'success');
-    // Show notif dot on admin button
-    const dot = document.getElementById('admin-notif-dot');
-    if (dot && currentProfile?.role === 'admin') dot.style.display = 'inline-block';
-  }
-}
-
-// ─── Moderation Queue ─────────────────────────────────────────
-let modLog = []; // in-memory log
-
-async function loadModerationQueue() {
-  const { data: flagged } = await sb.from('reviews')
-    .select('*, courses(name)')
-    .eq('is_flagged', true)
-    .order('created_at', { ascending: false });
-
-  const list = flagged || [];
-  const badge = document.getElementById('mod-count-badge');
-  const dot = document.getElementById('admin-notif-dot');
-
-  if (list.length) {
-    badge.style.display = 'inline-block';
-    badge.textContent = `${list.length} flagged`;
-    if (dot) dot.style.display = 'inline-block';
-  } else {
-    badge.style.display = 'none';
-    if (dot) dot.style.display = 'none';
-  }
-
-  document.getElementById('mod-queue-list').innerHTML = list.length
-    ? list.map(r => `<div class="mod-card" id="mod-${r.id}">
-        <div class="mod-flag">🚩 Flagged for review</div>
-        <div class="mod-course">Course: <strong>${escHtml(r.courses?.name || '—')}</strong> · ${r.semester || '—'}</div>
-        <div class="mod-body">${escHtml(r.body)}</div>
-        <div class="mod-meta">Rating: ${r.rating_overall || '—'}/5 · Submitted ${new Date(r.created_at).toLocaleDateString()}</div>
-        <div class="mod-actions">
-          <button class="mod-btn mod-approve" onclick="moderateReview('${r.id}','approve')">✓ Approve</button>
-          <button class="mod-btn mod-edit" onclick="moderateReview('${r.id}','edit')">✎ Request Edit</button>
-          <button class="mod-btn mod-remove" onclick="moderateReview('${r.id}','remove')">✕ Remove</button>
-        </div>
-      </div>`).join('')
-    : '<div style="text-align:center;padding:32px;color:var(--muted);font-size:14px">✓ No flagged reviews — queue is clear</div>';
-
-  renderModLog();
-}
-
-async function moderateReview(reviewId, action) {
-  const labels = { approve: 'Approved', edit: 'Requested Edit', remove: 'Removed' };
-
-  if (action === 'approve') {
-    await sb.from('reviews').update({ is_flagged: false }).eq('id', reviewId);
-  } else if (action === 'remove') {
-    if (!confirm('Permanently delete this review?')) return;
-    await sb.from('reviews').delete().eq('id', reviewId);
-  } else if (action === 'edit') {
-    await sb.from('reviews').update({ is_flagged: false }).eq('id', reviewId);
-    showToast('Review restored — student notified to revise', 'success');
-  }
-
-  // Log the action
-  modLog.unshift({ action, label: labels[action], reviewId, time: new Date() });
-  renderModLog();
-
-  // Remove card from queue
-  const card = document.getElementById(`mod-${reviewId}`);
-  if (card) card.remove();
-
-  showToast(`Review ${labels[action].toLowerCase()}`, action === 'remove' ? 'error' : 'success');
-  await loadModerationQueue();
-  if (currentCourseId) await loadReviews(currentCourseId);
-}
-
-function renderModLog() {
-  const el = document.getElementById('mod-log-list');
-  if (!el) return;
-  if (!modLog.length) {
-    el.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:12px">No actions logged yet</div>';
-    return;
-  }
-  const badgeClass = { approve: 'badge-approved', edit: 'badge-edit', remove: 'badge-removed' };
-  el.innerHTML = modLog.slice(0, 20).map(l =>
-    `<div class="mod-log-row">
-      <span class="mod-action-badge ${badgeClass[l.action]}">${l.label}</span>
-      <span style="color:var(--muted)">Review ID: ${l.reviewId.slice(0,8)}…</span>
-      <span style="margin-left:auto;color:var(--light);font-size:12px">${l.time.toLocaleTimeString()}</span>
-    </div>`
+function buildGradeBars() {
+  const grades = [['A+',18],['A',28],['A-',22],['B+',14],['B',10],['B-',5],['C+',2],['C',1]];
+  const max = 28;
+  document.getElementById('grade-bars').innerHTML = grades.map(([g, p]) =>
+    `<div class="grade-col"><span class="grade-pct">${p}%</span><div class="grade-bar" style="height:${Math.round(p/max*80)}px"></div><span class="grade-letter">${g}</span></div>`
   ).join('');
 }
 
@@ -1766,7 +1438,7 @@ function showPage(id, btn) {
   if (btn) btn.classList.add('active');
   window.scrollTo(0, 0);
   if (id === 'shortlist') renderShortlist();
-  if (id === 'admin') { loadAdminData(); loadModerationQueue(); }
+  if (id === 'admin') loadAdminData();
   if (id === 'browse') loadDeptFilters();
 }
 
