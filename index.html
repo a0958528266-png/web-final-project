@@ -1320,10 +1320,20 @@ function showPage(id,btn){
 }
 function doSearch(){
   const q=document.getElementById('hero-search').value.trim().toLowerCase();
-  if(q) allCourses=allCourses.filter(c=>c.name.toLowerCase().includes(q)||(c.professor||'').toLowerCase().includes(q)||(c.code||'').toLowerCase().includes(q));
   showPage('browse',null);
   document.querySelectorAll('.nav-btn')[1].classList.add('active');
   document.querySelectorAll('.nav-btn')[0].classList.remove('active');
+  if(!q) return;
+  const filtered = allCourses.filter(c=>
+    c.name.toLowerCase().includes(q)||
+    (c.professor||'').toLowerCase().includes(q)||
+    (c.code||'').toLowerCase().includes(q)||
+    (c.department||'').toLowerCase().includes(q)
+  );
+  document.getElementById('browse-grid').innerHTML = filtered.length
+    ? filtered.map(c=>buildCard(c)).join('')
+    : '<div class="loading-grid">找不到符合的課程。</div>';
+  document.getElementById('browse-count').innerHTML=`顯示 <strong>${filtered.length}</strong> 門課程`;
 }
 
 // ── UTILS ─────────────────────────────────────────────────────
