@@ -339,8 +339,9 @@ body.sidebar-open nav{padding-left:calc(340px + 2rem)}
 .modal-badge{display:inline-flex;align-items:center;gap:4px;background:var(--ice2);border:1px solid var(--border);padding:3px 10px;border-radius:20px;font-size:10px;color:var(--muted)}
 .pw-wrap{position:relative}
 .pw-toggle{position:absolute;right:11px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--light);font-size:12px;padding:0;font-family:'Noto Sans TC',sans-serif}
-.error-msg{font-size:11px;color:var(--red);margin-top:5px;display:none}
-.error-msg.show{display:block}
+#reset-overlay{display:none;position:fixed;inset:0;background:rgba(10,22,40,.7);z-index:2000;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+#reset-overlay.show{display:flex}
+
 
 /* ── REVIEW MODAL ── */
 .review-modal{display:none;position:fixed;inset:0;background:rgba(10,22,40,.7);z-index:1000;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
@@ -671,6 +672,36 @@ body.sidebar-open nav{padding-left:calc(340px + 2rem)}
   </div>
 </div>
 
+<!-- RESET PASSWORD MODAL -->
+<div class="modal-overlay" id="reset-overlay">
+  <div class="modal">
+    <div class="modal-banner">
+      <div class="modal-brand">逢甲<span>CourseHub</span></div>
+      <div class="modal-headline">設定新密碼</div>
+      <div class="modal-sub-text">請輸入你的新密碼。</div>
+    </div>
+    <div class="modal-body" style="padding:24px">
+      <div class="field-group" style="margin-bottom:14px">
+        <label class="field-label">新密碼</label>
+        <div class="pw-wrap">
+          <input class="field-input" type="password" id="reset-pw" placeholder="至少 8 個字元" style="padding-right:48px">
+          <button class="pw-toggle" onclick="togglePw('reset-pw',this)">顯示</button>
+        </div>
+        <div class="error-msg" id="reset-pw-err">密碼至少需要 8 個字元。</div>
+      </div>
+      <div class="field-group" style="margin-bottom:20px">
+        <label class="field-label">確認新密碼</label>
+        <div class="pw-wrap">
+          <input class="field-input" type="password" id="reset-pw2" placeholder="再次輸入密碼" style="padding-right:48px">
+          <button class="pw-toggle" onclick="togglePw('reset-pw2',this)">顯示</button>
+        </div>
+        <div class="error-msg" id="reset-pw2-err">兩次密碼不一致。</div>
+      </div>
+      <button class="modal-submit" onclick="submitResetPassword()" id="reset-submit-btn">更新密碼 →</button>
+    </div>
+  </div>
+</div>
+
 <!-- AUTH MODAL -->
 <div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
   <div class="modal">
@@ -731,8 +762,14 @@ document.addEventListener('DOMContentLoaded', function(){
   this.focus();
 });
   if (session) await onSignedIn(session.user);
-  sb.auth.onAuthStateChange(async (_e, session) => {
-    if (session) await onSignedIn(session.user); else onSignedOut();
+  sb.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'PASSWORD_RECOVERY') {
+      openResetModal();
+    } else if (session) {
+      await onSignedIn(session.user);
+    } else {
+      onSignedOut();
+    }
   });
   await loadCourses();
   await loadStats();
@@ -767,6 +804,32 @@ function onSignedOut() {
   renderGrids();
 }
 async function signOut() { await sb.auth.signOut(); showToast('已登出'); showPage('home'); }
+
+// ── RESET PASSWORD ────────────────────────────────────────────
+function openResetModal() {
+  document.getElementById('reset-overlay').classList.add('show');
+  document.getElementById('reset-pw').value = '';
+  document.getElementById('reset-pw2').value = '';
+  showErr('reset-pw-err', false);
+  showErr('reset-pw2-err', false);
+}
+function closeResetModal() {
+  document.getElementById('reset-overlay').classList.remove('show');
+}
+async function submitResetPassword() {
+  const pw = document.getElementById('reset-pw').value;
+  const pw2 = document.getElementById('reset-pw2').value;
+  let ok = true;
+  showErr('reset-pw-err', pw.length < 8); if (pw.length < 8) ok = false;
+  showErr('reset-pw2-err', pw !== pw2); if (pw !== pw2) ok = false;
+  if (!ok) return;
+  const btn = document.getElementById('reset-submit-btn');
+  btn.disabled = true; btn.innerHTML = '<div class="spinner" style="margin:0 auto"></div>';
+  const { error } = await sb.auth.updateUser({ password: pw });
+  btn.disabled = false; btn.textContent = '更新密碼 →';
+  if (error) { showToast(error.message, 'error'); }
+  else { showToast('密碼已更新！請重新登入。', 'success'); closeResetModal(); await sb.auth.signOut(); openModal(); }
+}
 
 // ── DATA ──────────────────────────────────────────────────────
 async function loadCourses() {
