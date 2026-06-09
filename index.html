@@ -68,6 +68,28 @@ nav{background:var(--navy);padding:0 2rem;display:flex;align-items:center;justif
 .search-bar input::placeholder{color:var(--light)}
 .search-go{background:var(--navy);color:#fff;border:none;padding:9px 20px;border-radius:10px;font-family:'Noto Sans TC',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;white-space:nowrap}
 .search-go:hover{background:var(--teal)}
+
+/* ── SEARCH DROPDOWN ── */
+.search-wrap{position:relative;max-width:580px;margin:0 auto}
+.search-bar{margin:0}
+#search-dropdown{position:absolute;top:calc(100% + 8px);left:0;right:0;background:#fff;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.25);z-index:200;overflow:hidden;display:none;max-height:380px;overflow-y:auto}
+#search-dropdown.open{display:block;animation:fadeUp .2s ease}
+.sdrop-item{display:flex;align-items:center;gap:14px;padding:13px 18px;cursor:pointer;border-bottom:1px solid var(--ice2);transition:background .15s}
+.sdrop-item:last-child{border-bottom:none}
+.sdrop-item:hover{background:var(--ice)}
+.sdrop-icon{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--navy),var(--navy3));display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.sdrop-info{flex:1;min-width:0}
+.sdrop-name{font-family:'Noto Serif TC',serif;font-size:14px;font-weight:700;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sdrop-name em{color:var(--teal);font-style:normal;font-weight:700}
+.sdrop-meta{display:flex;align-items:center;gap:10px;margin-top:3px;flex-wrap:wrap}
+.sdrop-class{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:4px}
+.sdrop-teacher{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:4px}
+.sdrop-dept{font-size:10px;padding:2px 8px;border-radius:20px;background:rgba(14,124,107,.1);color:var(--teal);font-weight:500}
+.sdrop-arrow{color:var(--light);font-size:14px}
+.sdrop-empty{padding:24px 18px;text-align:center;color:var(--muted);font-size:13px}
+.sdrop-empty-icon{font-size:28px;margin-bottom:8px;display:block;opacity:.5}
+.sdrop-footer{padding:10px 18px;background:var(--ice2);text-align:center;font-size:12px;color:var(--teal);cursor:pointer;font-weight:500}
+.sdrop-footer:hover{background:var(--ice)}
 .stats-row{display:flex;justify-content:center;gap:48px;padding:40px 2rem;background:#fff;border-bottom:1px solid var(--border)}
 .stat{text-align:center}
 .stat-num{font-family:'Noto Serif TC',serif;font-size:34px;font-weight:700;color:var(--navy)}
@@ -374,9 +396,12 @@ body.sidebar-open nav{padding-left:calc(340px + 2rem)}
     <div class="hero-tag">逢甲大學 資訊工程學系</div>
     <h1>找到最適合你的<br><span>課程與教授</span></h1>
     <p>來自同學的真實評價，比較評分、教學風格與出席要求，讓你在選課前做出最佳決定。</p>
-    <div class="search-bar">
-      <input type="text" placeholder="搜尋課程、教授..." id="hero-search" onkeydown="if(event.key==='Enter') doSearch()"/>
-      <button class="search-go" onclick="doSearch()">搜尋 →</button>
+    <div class="search-wrap">
+      <div class="search-bar">
+        <input type="text" placeholder="搜尋課程、教授..." id="hero-search" onkeydown="if(event.key==='Enter'){doSearch();closeDropdown()}" oninput="handleSearchInput(this.value)" autocomplete="off"/>
+        <button class="search-go" onclick="doSearch();closeDropdown()">搜尋 →</button>
+      </div>
+      <div id="search-dropdown"></div>
     </div>
   </div>
   <div class="stats-row">
@@ -487,7 +512,7 @@ body.sidebar-open nav{padding-left:calc(340px + 2rem)}
 <!-- PROFESSOR PAGE -->
 <div id="page-professor" class="page">
   <div class="prof-hero">
-    <button class="profile-back" onclick="showPage('browse',null)">← 返回</button>
+    <button class="profile-back" onclick="history.back()">← 返回</button>
     <div class="prof-hero-top">
       <div class="prof-avatar-big" id="prof-avatar-big">?</div>
       <div>
@@ -700,10 +725,21 @@ let allCourses = [], shortlistIds = new Set();
 let currentCourseId = null, currentProfessorId = null;
 let pendingAction = null, editingCourseId = null;
 let modLog = [];
-
+let searchKeyword = ""; 
+document.addEventListener('DOMContentLoaded', function(){
+  const input = document.getElementById('hero-search');
+  if(input){
+    input.addEventListener('keydown', function(e){
+      if(e.key === 'Enter') doSearch();
+    });
+  }
+});
 // ── BOOT ──────────────────────────────────────────────────────
 (async function boot() {
   const { data: { session } } = await sb.auth.getSession();
+  document.getElementById('hero-search').addEventListener('click', function(){
+  this.focus();
+});
   if (session) await onSignedIn(session.user);
   sb.auth.onAuthStateChange(async (_e, session) => {
     if (session) await onSignedIn(session.user); else onSignedOut();
@@ -784,6 +820,17 @@ function getFilteredCourses() {
   const langChecked = [...document.querySelectorAll('.lang-filter:checked')].map(i=>i.value);
   const sort = document.getElementById('sort-select')?.value||'rating';
   let list = [...allCourses];
+  
+  // 👇 Intercepts data mapping filters to evaluate the search keywords
+  if (searchKeyword) {
+    list = list.filter(c => 
+      c.name.toLowerCase().includes(searchKeyword) ||
+      (c.professor||'').toLowerCase().includes(searchKeyword) ||
+      (c.code||'').toLowerCase().includes(searchKeyword) ||
+      (c.department||'').toLowerCase().includes(searchKeyword)
+    );
+  }
+  
   if (attChecked.length) list = list.filter(c => attChecked.includes(c.attendance));
   if (langChecked.length) list = list.filter(c => langChecked.includes(c.language));
   if (sort==='rating') list.sort((a,b)=>(b.rating||0)-(a.rating||0));
@@ -1307,6 +1354,67 @@ async function forgotPassword(){
   if(error) showToast(error.message,'error');
   else showToast('密碼重設信已寄出！','success');
 }
+
+// ── LIVE SEARCH DROPDOWN ──────────────────────────────────────
+function highlightMatch(text, q) {
+  if (!q || !text) return escHtml(text || '');
+  const idx = text.toLowerCase().indexOf(q.toLowerCase());
+  if (idx === -1) return escHtml(text);
+  return escHtml(text.slice(0, idx)) + '<em>' + escHtml(text.slice(idx, idx + q.length)) + '</em>' + escHtml(text.slice(idx + q.length));
+}
+
+function handleSearchInput(val) {
+  const q = val.trim();
+  const dd = document.getElementById('search-dropdown');
+  if (!q) { closeDropdown(); return; }
+  const matches = (allCourses || []).filter(c =>
+    (c.name||'').toLowerCase().includes(q.toLowerCase()) ||
+    (c.professor||'').toLowerCase().includes(q.toLowerCase()) ||
+    (c.code||'').toLowerCase().includes(q.toLowerCase()) ||
+    (c.department||'').toLowerCase().includes(q.toLowerCase())
+  ).slice(0, 8);
+
+  if (!matches.length) {
+    dd.innerHTML = `<div class="sdrop-empty"><span class="sdrop-empty-icon">🔍</span>找不到符合「${escHtml(q)}」的課程</div>`;
+  } else {
+    dd.innerHTML = matches.map(c => `
+      <div class="sdrop-item" onclick="openCourseFromSearch('${c.id}')">
+        <div class="sdrop-icon">🏛️</div>
+        <div class="sdrop-info">
+          <div class="sdrop-name">${highlightMatch(c.name, q)}</div>
+          <div class="sdrop-meta">
+            ${c.department ? `<span class="sdrop-dept">${escHtml(c.department)}</span>` : ''}
+            <span class="sdrop-class">🏛️ ${escHtml(c.code||'—')}</span>
+            <span class="sdrop-teacher">🎓 ${escHtml(c.professor||'未指定')}</span>
+          </div>
+        </div>
+        <span class="sdrop-arrow">›</span>
+      </div>`).join('') +
+      (matches.length < (allCourses||[]).filter(c =>
+        (c.name||'').toLowerCase().includes(q.toLowerCase()) ||
+        (c.professor||'').toLowerCase().includes(q.toLowerCase()) ||
+        (c.code||'').toLowerCase().includes(q.toLowerCase()) ||
+        (c.department||'').toLowerCase().includes(q.toLowerCase())
+      ).length ? `<div class="sdrop-footer" onclick="doSearch();closeDropdown()">查看全部結果 →</div>` : '');
+  }
+  dd.classList.add('open');
+}
+
+function openCourseFromSearch(id) {
+  closeDropdown();
+  document.getElementById('hero-search').value = '';
+  openCourse(id);
+}
+
+function closeDropdown() {
+  const dd = document.getElementById('search-dropdown');
+  if (dd) { dd.classList.remove('open'); dd.innerHTML = ''; }
+}
+
+document.addEventListener('click', function(e) {
+  const wrap = document.querySelector('.search-wrap');
+  if (wrap && !wrap.contains(e.target)) closeDropdown();
+});
 
 // ── NAVIGATION ────────────────────────────────────────────────
 function showPage(id,btn){
