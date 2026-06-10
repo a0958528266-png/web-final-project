@@ -773,6 +773,7 @@ document.addEventListener('DOMContentLoaded', function(){
   });
   await loadCourses();
   await loadStats();
+  await handleDeepLink();
 })();
 
 // ── AUTH ──────────────────────────────────────────────────────
@@ -919,7 +920,8 @@ function starsHTML(r) {
 // ── COURSE PROFILE ────────────────────────────────────────────
 async function openProfile(id) {
   currentCourseId = id;
-  showPage('profile', null);
+  showPage('profile', null, false);
+  history.pushState({page:'profile', courseId:id}, '', `?course=${id}`);
   const course = allCourses.find(c => c.id === id);
   if (!course) return;
   document.getElementById('p-dept').textContent = course.department||'';
@@ -975,7 +977,8 @@ function openProfessorFromCourse() {
 
 async function openProfessor(profId) {
   currentProfessorId = profId;
-  showPage('professor', null);
+  showPage('professor', null, false);
+  history.pushState({page:'professor', profId:profId}, '', `?professor=${profId}`);
   const { data: prof } = await sb.from('professors').select('*,departments(name)').eq('id',profId).single();
   if (!prof) { showToast('找不到教師','error'); return; }
   const parts = prof.full_name.trim().split(/\s+/);
@@ -1469,8 +1472,45 @@ document.addEventListener('click', function(e) {
   if (wrap && !wrap.contains(e.target)) closeDropdown();
 });
 
+// alias used by search dropdown
+function openCourse(id) { openProfile(id); }
+
+// ── BACK BUTTON (popstate) ─────────────────────────────────────
+window.addEventListener('popstate', async (e) => {
+  const state = e.state;
+  if (!state) { showPage('home', null, false); return; }
+  if (state.page === 'profile' && state.courseId) {
+    await openProfile(state.courseId);
+    // re-push so we don't double-push
+    history.replaceState(state, '', `?course=${state.courseId}`);
+  } else if (state.page === 'professor' && state.profId) {
+    await openProfessor(state.profId);
+    history.replaceState(state, '', `?professor=${state.profId}`);
+  } else if (state.page) {
+    showPage(state.page, null, false);
+  } else {
+    showPage('home', null, false);
+  }
+});
+
+// ── DEEP LINK on first load ────────────────────────────────────
+async function handleDeepLink() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('course')) {
+    const id = parseInt(params.get('course'));
+    if (!isNaN(id)) { await openProfile(id); return; }
+  }
+  if (params.get('professor')) {
+    const id = parseInt(params.get('professor'));
+    if (!isNaN(id)) { await openProfessor(id); return; }
+  }
+  if (params.get('page')) {
+    showPage(params.get('page'), null, false);
+  }
+}
+
 // ── NAVIGATION ────────────────────────────────────────────────
-function showPage(id,btn){
+function showPage(id,btn,pushHistory=true){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
@@ -1478,6 +1518,10 @@ function showPage(id,btn){
   window.scrollTo(0,0);
   if(id==='shortlist') renderShortlist();
   if(id==='admin'){loadAdminData();loadModerationQueue();}
+  if(pushHistory && id!=='profile' && id!=='professor'){
+    const url = id==='home' ? window.location.pathname : `?page=${id}`;
+    history.pushState({page:id}, '', url);
+  }
 }
 function doSearch(){
   const q=document.getElementById('hero-search').value.trim().toLowerCase();
