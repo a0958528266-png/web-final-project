@@ -1092,13 +1092,27 @@ function renderSidebar() {
   days.forEach((_,i)=>grid[i]={});
   saved.forEach(c=>{
     const s=c.schedule||'';
-    const dayMatch=s.match(/^([A-Za-z/]+)/);
-    const timeMatch=s.match(/(\d{2}):\d{2}/);
-    if(!dayMatch||!timeMatch) return;
-    const courseDays=dayMatch[1].split('/');
-    const period=timeMap[timeMatch[1]]||null;
-    if(!period) return;
-    courseDays.forEach(d=>{const idx=days.indexOf(d);if(idx!==-1) grid[idx][period]={code:c.code||c.name.slice(0,4),name:c.name,id:c.id};});
+    const cell={code:c.code||c.name.slice(0,4),name:c.name,id:c.id};
+    // New format: Mon:6-7,Wed:3-4
+    if(/^[A-Z][a-z]{2}:\d/.test(s)){
+      s.split(',').forEach(seg=>{
+        const m=seg.match(/^([A-Za-z]+):(\d+)(?:-(\d+))?$/);
+        if(!m) return;
+        const idx=days.indexOf(m[1]);
+        if(idx===-1) return;
+        const p1=parseInt(m[2]),p2=m[3]?parseInt(m[3]):p1;
+        for(let p=p1;p<=p2;p++) grid[idx][p]=cell;
+      });
+    } else {
+      // Legacy format: Mon/Wed 09:00 – 10:00
+      const dayMatch=s.match(/^([A-Za-z/]+)/);
+      const timeMatch=s.match(/(\d{2}):\d{2}/);
+      if(!dayMatch||!timeMatch) return;
+      const courseDays=dayMatch[1].split('/');
+      const period=timeMap[timeMatch[1]]||null;
+      if(!period) return;
+      courseDays.forEach(d=>{const idx=days.indexOf(d);if(idx!==-1) grid[idx][period]=cell;});
+    }
   });
   let html=`<div class="timetable-wrap"><table class="timetable"><thead><tr><th class="period-head"></th>${dayLabels.map((d,i)=>`<th style="${i===todayIdx?'background:#fff9c4;color:#8a6200':''}">${d}</th>`).join('')}</tr></thead><tbody>`;
   for(let p=1;p<=periods;p++){
