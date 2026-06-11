@@ -289,6 +289,11 @@ textarea.form-input{resize:vertical;min-height:72px}
 .timetable td{border:1px solid #d4cc9a;background:#fffff5;text-align:center;vertical-align:middle;height:32px;position:relative;cursor:default}
 .timetable td.has-course{background:#c8e6c9;cursor:pointer;transition:background .15s}
 .timetable td.has-course:hover{background:#a5d6a7}
+.timetable td.conflict-cell{background:#ffcdd2 !important;cursor:default;padding:1px}
+.timetable td.conflict-cell:hover{background:#ef9a9a !important}
+.conflict-code{font-size:8px;font-weight:700;color:#b71c1c;cursor:pointer;line-height:1.2;padding:1px 0}
+.conflict-code:hover{text-decoration:underline}
+.conflict-divider{font-size:7px;color:#e53935;line-height:1}
 .timetable td.today-col{background:#fefde8}
 .timetable td.has-course.today-col{background:#a5d6a7}
 .course-cell{font-size:9px;font-weight:600;color:#2e7d32;line-height:1.2;padding:1px}
@@ -1088,12 +1093,16 @@ function renderSidebar() {
   const todayIdx=[1,2,3,4,5,6,0].indexOf(new Date().getDay());
   const periods=14;
   const timeMap={'07':1,'08':2,'09':3,'10':4,'11':5,'12':6,'13':7,'14':8,'15':9,'16':10,'17':11,'18':12,'19':13,'20':14};
+  // grid[dayIdx][period] = array of cells (supports conflicts)
   const grid={};
   days.forEach((_,i)=>grid[i]={});
+  const addToGrid=(idx,p,cell)=>{
+    if(!grid[idx][p]) grid[idx][p]=[];
+    grid[idx][p].push(cell);
+  };
   saved.forEach(c=>{
     const s=c.schedule||'';
     const cell={code:c.code||c.name.slice(0,4),name:c.name,id:c.id};
-    // New format: Mon:6-7,Wed:3-4
     if(/^[A-Z][a-z]{2}:\d/.test(s)){
       s.split(',').forEach(seg=>{
         const m=seg.match(/^([A-Za-z]+):(\d+)(?:-(\d+))?$/);
@@ -1101,30 +1110,38 @@ function renderSidebar() {
         const idx=days.indexOf(m[1]);
         if(idx===-1) return;
         const p1=parseInt(m[2]),p2=m[3]?parseInt(m[3]):p1;
-        for(let p=p1;p<=p2;p++) grid[idx][p]=cell;
+        for(let p=p1;p<=p2;p++) addToGrid(idx,p,cell);
       });
     } else {
-      // Legacy format: Mon/Wed 09:00 – 10:00
       const dayMatch=s.match(/^([A-Za-z/]+)/);
       const timeMatch=s.match(/(\d{2}):\d{2}/);
       if(!dayMatch||!timeMatch) return;
       const courseDays=dayMatch[1].split('/');
       const period=timeMap[timeMatch[1]]||null;
       if(!period) return;
-      courseDays.forEach(d=>{const idx=days.indexOf(d);if(idx!==-1) grid[idx][period]=cell;});
+      courseDays.forEach(d=>{const idx=days.indexOf(d);if(idx!==-1) addToGrid(idx,period,cell);});
     }
   });
   let html=`<div class="timetable-wrap"><table class="timetable"><thead><tr><th class="period-head"></th>${dayLabels.map((d,i)=>`<th style="${i===todayIdx?'background:#fff9c4;color:#8a6200':''}">${d}</th>`).join('')}</tr></thead><tbody>`;
   for(let p=1;p<=periods;p++){
     html+=`<tr><td class="period-num">${p}</td>`;
     days.forEach((d,i)=>{
-      const cell=grid[i][p],isToday=i===todayIdx;
-      if(cell) html+=`<td class="has-course${isToday?' today-col':''}" onclick="openProfile(${cell.id});toggleSidebar()" title="${escHtml(cell.name)}"><div class="course-cell">${escHtml(cell.code)}</div></td>`;
-      else html+=`<td class="${isToday?'today-col':''}"></td>`;
+      const cells=grid[i][p], isToday=i===todayIdx;
+      if(cells&&cells.length>1){
+        // CONFLICT: multiple courses in same slot — red background, show all codes
+        const title=cells.map(c=>c.name).join(' / ');
+        const inner=cells.map(c=>`<div class="course-cell conflict-code" onclick="openProfile(${c.id});toggleSidebar()" title="${escHtml(c.name)}">${escHtml(c.code)}</div>`).join('<div class="conflict-divider">⚡</div>');
+        html+=`<td class="has-course conflict-cell${isToday?' today-col':''}" title="${escHtml(title)}">${inner}</td>`;
+      } else if(cells&&cells.length===1){
+        const cell=cells[0];
+        html+=`<td class="has-course${isToday?' today-col':''}" onclick="openProfile(${cell.id});toggleSidebar()" title="${escHtml(cell.name)}"><div class="course-cell">${escHtml(cell.code)}</div></td>`;
+      } else {
+        html+=`<td class="${isToday?'today-col':''}"></td>`;
+      }
     });
     html+=`</tr>`;
   }
-  html+=`</tbody></table></div><div class="timetable-footer">點擊課程格子查看詳情</div>`;
+  html+=`</tbody></table></div><div class="timetable-footer">點擊課程格子查看詳情 · ⚡ 表示時間衝突</div>`;
   content.innerHTML=html;
 }
 
