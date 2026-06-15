@@ -57,7 +57,7 @@ nav{background:var(--navy);padding:0 2rem;display:flex;align-items:center;justif
 .loading-grid{display:flex;align-items:center;justify-content:center;padding:48px;color:var(--muted);gap:10px;font-size:14px}
 
 /* ── HOME ── */
-.hero{background:linear-gradient(135deg,var(--navy) 0%,var(--navy3) 100%);padding:72px 2rem 90px;text-align:center;position:relative;overflow:hidden}
+.hero{background:linear-gradient(135deg,var(--navy) 0%,var(--navy3) 100%);padding:72px 2rem 70px;text-align:center;position:relative;overflow: visible;z-index:1}
 .hero::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle at 20% 50%, rgba(201,168,76,.08) 0%, transparent 50%),radial-gradient(circle at 80% 20%, rgba(14,124,107,.08) 0%, transparent 50%)}
 .hero-tag{display:inline-block;background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.3);color:var(--gold);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;padding:4px 14px;border-radius:20px;margin-bottom:20px}
 .hero h1{font-family:'Noto Serif TC',serif;font-size:44px;font-weight:700;color:#fff;line-height:1.2;margin-bottom:14px}
@@ -70,27 +70,147 @@ nav{background:var(--navy);padding:0 2rem;display:flex;align-items:center;justif
 .search-go:hover{background:var(--teal)}
 
 /* ── SEARCH DROPDOWN ── */
-.search-wrap{position:relative;max-width:580px;margin:0 auto}
-.search-bar{margin:0}
-#search-dropdown{position:absolute;top:calc(100% + 8px);left:0;right:0;background:#fff;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.25);z-index:200;overflow:hidden;display:none;max-height:380px;overflow-y:auto}
-#search-dropdown.open{display:block;animation:fadeUp .2s ease}
-.sdrop-item{display:flex;align-items:center;gap:14px;padding:13px 18px;cursor:pointer;border-bottom:1px solid var(--ice2);transition:background .15s}
-.sdrop-item:last-child{border-bottom:none}
-.sdrop-item:hover{background:var(--ice)}
-.sdrop-icon{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--navy),var(--navy3));display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
-.sdrop-info{flex:1;min-width:0}
-.sdrop-name{font-family:'Noto Serif TC',serif;font-size:14px;font-weight:700;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sdrop-name em{color:var(--teal);font-style:normal;font-weight:700}
-.sdrop-meta{display:flex;align-items:center;gap:10px;margin-top:3px;flex-wrap:wrap}
-.sdrop-class{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:4px}
-.sdrop-teacher{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:4px}
-.sdrop-dept{font-size:10px;padding:2px 8px;border-radius:20px;background:rgba(14,124,107,.1);color:var(--teal);font-weight:500}
-.sdrop-arrow{color:var(--light);font-size:14px}
-.sdrop-empty{padding:24px 18px;text-align:center;color:var(--muted);font-size:13px}
-.sdrop-empty-icon{font-size:28px;margin-bottom:8px;display:block;opacity:.5}
-.sdrop-footer{padding:10px 18px;background:var(--ice2);text-align:center;font-size:12px;color:var(--teal);cursor:pointer;font-weight:500}
-.sdrop-footer:hover{background:var(--ice)}
-.stats-row{display:flex;justify-content:center;gap:48px;padding:40px 2rem;background:#fff;border-bottom:1px solid var(--border)}
+.search-wrap {
+  position: relative;
+  max-width: 580px;
+  margin: 0 auto;
+  margin-bottom: 0px;   /* or simply 0 */
+  z-index: 9999;
+}
+.search-bar {
+  margin: 0;
+}
+#search-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border-radius: 0 0 14px 14px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .35);
+  overflow: hidden;
+  display: none;
+  max-height: 380px;
+  overflow-y: auto;
+  border: 1px solid var(--ice2);
+  border-top: none;
+  z-index: 9999;
+}
+#search-dropdown.open {
+  display: block;
+  animation: fadeUp .2s ease;
+}
+.sdrop-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 13px 18px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--ice2);
+  transition: background .15s;
+}
+.sdrop-item:last-child {
+  border-bottom: none;
+}
+.sdrop-item:hover {
+  background: var(--ice);
+}
+.sdrop-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--navy), var(--navy3));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.sdrop-info {
+  flex: 1;
+  min-width: 0;
+}
+.sdrop-name {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--navy);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sdrop-name em {
+  color: var(--teal);
+  font-style: normal;
+  font-weight: 700;
+}
+.sdrop-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 3px;
+  flex-wrap: wrap;
+}
+.sdrop-class {
+  font-size: 11px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.sdrop-teacher {
+  font-size: 11px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.sdrop-dept {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: rgba(14, 124, 107, .1);
+  color: var(--teal);
+  font-weight: 500;
+}
+.sdrop-arrow {
+  color: var(--light);
+  font-size: 14px;
+}
+.sdrop-empty {
+  padding: 24px 18px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+.sdrop-empty-icon {
+  font-size: 28px;
+  margin-bottom: 8px;
+  display: block;
+  opacity: .5;
+}
+.sdrop-footer {
+  padding: 10px 18px;
+  background: var(--ice2);
+  text-align: center;
+  font-size: 12px;
+  color: var(--teal);
+  cursor: pointer;
+  font-weight: 500;
+}
+.sdrop-footer:hover {
+  background: var(--ice);
+}
+.stats-row {
+  display: flex;
+  justify-content: center;
+  gap: 48px;
+  padding: 54px 2rem 40px;
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  z-index: 0;
+}
 .stat{text-align:center}
 .stat-num{font-family:'Noto Serif TC',serif;font-size:34px;font-weight:700;color:var(--navy)}
 .stat-lbl{font-size:12px;color:var(--muted);margin-top:4px;letter-spacing:.3px}
@@ -273,6 +393,67 @@ textarea.form-input{resize:vertical;min-height:72px}
 .badge-removed{background:#FEECEC;color:var(--red)}
 .badge-edit{background:#FEF3E2;color:#854F0B}
 
+/* ── NOTIFICATION BELL ── */
+.notif-bell-wrap{position:relative;display:inline-flex;align-items:center}
+.notif-bell-btn{background:rgba(255,255,255,.08);border:none;color:rgba(255,255,255,.7);width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:all .2s;position:relative}
+.notif-bell-btn:hover{background:rgba(255,255,255,.18);color:#fff}
+.notif-bell-count{position:absolute;top:-3px;right:-3px;background:var(--red);color:#fff;font-size:9px;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 3px;font-family:'Noto Sans TC',sans-serif}
+.notif-panel{position:absolute;top:calc(100% + 10px);right:0;width:320px;background:#fff;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.22);z-index:9999;overflow:hidden;display:none}
+.notif-panel.open{display:block;animation:fadeUp .2s ease}
+.notif-panel-head{padding:13px 16px;background:var(--navy);display:flex;align-items:center;justify-content:space-between}
+.notif-panel-title{font-family:'Noto Serif TC',serif;font-size:13px;color:#fff;font-weight:700}
+.notif-mark-all{background:none;border:none;color:rgba(255,255,255,.5);font-size:11px;cursor:pointer;font-family:'Noto Sans TC',sans-serif}
+.notif-mark-all:hover{color:#fff}
+.notif-item{padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;display:flex;gap:10px;align-items:flex-start}
+.notif-item:last-child{border-bottom:none}
+.notif-item:hover{background:var(--ice)}
+.notif-item.unread{background:#F0F7FF}
+.notif-item.unread:hover{background:#E3EFF9}
+.notif-icon{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.notif-icon.warn{background:#FEF3E2}
+.notif-icon.info{background:#E1F5EE}
+.notif-icon.flag{background:#FEECEC}
+.notif-text{flex:1}
+.notif-title{font-size:12px;font-weight:600;color:var(--navy);margin-bottom:2px}
+.notif-body{font-size:11px;color:var(--muted);line-height:1.5}
+.notif-time{font-size:10px;color:var(--light);margin-top:3px}
+.notif-empty{padding:28px 16px;text-align:center;color:var(--muted);font-size:12px}
+
+/* ── REVIEW HIDDEN (pending edit) ── */
+.review-card.hidden-review{background:repeating-linear-gradient(45deg,#fff,#fff 8px,#fafafa 8px,#fafafa 16px);border:1.5px dashed #ddd;opacity:.7}
+.review-card.hidden-review .review-text{filter:blur(3px);user-select:none}
+.review-hidden-banner{background:#FEF3E2;border:1px solid #F5D8A0;border-radius:8px;padding:8px 12px;font-size:12px;color:#854F0B;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.review-edit-request-banner{background:#E8F4FE;border:1px solid #B3D8F7;border-radius:8px;padding:9px 12px;font-size:12px;color:#0A4D8C;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.review-edit-btn{background:var(--navy);color:#fff;border:none;padding:5px 12px;border-radius:7px;font-size:11px;font-family:'Noto Sans TC',sans-serif;cursor:pointer;white-space:nowrap;font-weight:500}
+.review-edit-btn:hover{background:var(--teal)}
+
+/* ── USER PROFILE PAGE ── */
+.profile-page-hero{background:linear-gradient(135deg,var(--navy) 0%,var(--navy3) 100%);padding:40px 2rem 32px;color:#fff}
+.user-avatar-big{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold2));display:flex;align-items:center;justify-content:center;font-family:'Noto Serif TC',serif;font-size:28px;font-weight:700;color:var(--navy);flex-shrink:0;margin-bottom:14px}
+.user-profile-name{font-family:'Noto Serif TC',serif;font-size:26px;font-weight:700;color:#fff;margin-bottom:4px}
+.user-profile-email{font-size:13px;color:rgba(255,255,255,.5)}
+.user-profile-stats{display:flex;gap:20px;margin-top:20px;flex-wrap:wrap}
+.user-stat-pill{background:rgba(255,255,255,.08);border-radius:10px;padding:10px 20px;text-align:center}
+.user-stat-num{font-family:'Noto Serif TC',serif;font-size:24px;font-weight:700;color:#fff}
+.user-stat-lbl{font-size:11px;color:rgba(255,255,255,.5);margin-top:2px}
+.user-profile-body{max-width:820px;margin:28px auto;padding:0 2rem}
+.my-review-card{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:12px}
+.my-review-card.needs-edit{border-color:#F5A623;background:#FFFBF0}
+.my-review-course{font-family:'Noto Serif TC',serif;font-size:15px;font-weight:700;color:var(--navy);margin-bottom:4px;cursor:pointer}
+.my-review-course:hover{color:var(--teal)}
+.my-review-meta{font-size:11px;color:var(--muted);margin-bottom:10px;display:flex;gap:10px;flex-wrap:wrap}
+.my-review-body{font-size:13px;color:var(--text);line-height:1.7;margin-bottom:12px}
+.my-review-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.my-edit-btn{background:var(--navy);color:#fff;border:none;padding:6px 14px;border-radius:8px;font-size:12px;font-family:'Noto Sans TC',sans-serif;cursor:pointer;font-weight:500;transition:all .2s}
+.my-edit-btn:hover{background:var(--teal)}
+.my-delete-btn{background:none;border:1px solid var(--border);color:var(--muted);padding:6px 12px;border-radius:8px;font-size:12px;font-family:'Noto Sans TC',sans-serif;cursor:pointer;transition:all .2s}
+.my-delete-btn:hover{border-color:var(--red);color:var(--red);background:#FEECEC}
+.needs-edit-badge{display:inline-flex;align-items:center;gap:4px;background:#FEF3E2;border:1px solid #F5D8A0;color:#854F0B;font-size:10px;padding:2px 9px;border-radius:20px;font-weight:600}
+
+/* ── EDIT MY REVIEW MODAL ── */
+.edit-review-modal{display:none;position:fixed;inset:0;background:rgba(10,22,40,.7);z-index:1001;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.edit-review-modal.show{display:flex}
+
 /* ── SCHEDULE SIDEBAR ── */
 .schedule-sidebar{position:fixed;top:58px;left:0;bottom:0;width:340px;background:#fff;z-index:90;transform:translateX(-100%);transition:transform .3s cubic-bezier(.4,0,.2,1);overflow-y:auto;display:flex;flex-direction:column;box-shadow:4px 0 24px rgba(0,0,0,.12)}
 .schedule-sidebar.open{transform:translateX(0)}
@@ -390,7 +571,15 @@ body.sidebar-open nav{padding-left:calc(340px + 2rem)}
     <div class="logged-out"><button class="login-btn" onclick="openModal()">登入</button></div>
     <div class="logged-in">
       <span id="nav-username" style="font-size:12px;color:rgba(255,255,255,.65)"></span>
-      <div class="avatar" id="nav-avatar"></div>
+      <!-- Notification Bell -->
+      <div class="notif-bell-wrap" id="notif-bell-wrap">
+        <button class="notif-bell-btn" onclick="toggleNotifPanel(event)" id="notif-bell-btn" title="通知">🔔<span class="notif-bell-count" id="notif-count" style="display:none">0</span></button>
+        <div class="notif-panel" id="notif-panel">
+          <div class="notif-panel-head"><span class="notif-panel-title">🔔 通知</span><button class="notif-mark-all" onclick="markAllNotifsRead()">全部標為已讀</button></div>
+          <div id="notif-list"><div class="notif-empty">目前沒有通知</div></div>
+        </div>
+      </div>
+      <div class="avatar" id="nav-avatar" onclick="showPage('myprofile',null)" title="我的個人檔案" style="cursor:pointer"></div>
       <button class="signout-btn" onclick="signOut()">登出</button>
     </div>
   </div>
@@ -651,6 +840,54 @@ body.sidebar-open nav{padding-left:calc(340px + 2rem)}
   </div>
 </div>
 
+<!-- MY PROFILE PAGE -->
+<div id="page-myprofile" class="page">
+  <div class="profile-page-hero">
+    <button class="profile-back" onclick="history.back()">← 返回</button>
+    <div class="user-avatar-big" id="myp-avatar">?</div>
+    <div class="user-profile-name" id="myp-name">—</div>
+    <div class="user-profile-email" id="myp-email">—</div>
+    <div class="user-profile-stats">
+      <div class="user-stat-pill"><div class="user-stat-num" id="myp-review-count">0</div><div class="user-stat-lbl">我的評論</div></div>
+      <div class="user-stat-pill"><div class="user-stat-num" id="myp-saved-count">0</div><div class="user-stat-lbl">已儲存課程</div></div>
+      <div class="user-stat-pill"><div class="user-stat-num" id="myp-pending-count">0</div><div class="user-stat-lbl">待修改</div></div>
+    </div>
+  </div>
+  <div class="user-profile-body">
+    <div style="font-family:'Noto Serif TC',serif;font-size:20px;font-weight:700;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:10px">
+      我的評論
+      <span id="myp-pending-badge" style="display:none;background:var(--red);color:#fff;font-size:11px;padding:2px 8px;border-radius:12px">有待修改</span>
+    </div>
+    <div id="my-reviews-list"><div class="loading-grid"><div class="spinner" style="border-top-color:var(--teal)"></div> 載入中…</div></div>
+  </div>
+</div>
+
+<!-- EDIT MY REVIEW MODAL -->
+<div class="edit-review-modal" id="edit-review-modal" onclick="if(event.target===this)closeEditReviewModal()">
+  <div class="review-modal-box">
+    <div class="review-modal-title">修改評論</div>
+    <div class="review-modal-sub" id="edit-review-modal-sub"></div>
+    <input type="hidden" id="edit-review-id">
+    <div class="rating-group"><label>整體評分 *</label>
+      <div class="star-picker" id="esp-overall" data-val="0">
+        <span class="star-pick" onclick="setEditStars('overall',1)">★</span><span class="star-pick" onclick="setEditStars('overall',2)">★</span><span class="star-pick" onclick="setEditStars('overall',3)">★</span><span class="star-pick" onclick="setEditStars('overall',4)">★</span><span class="star-pick" onclick="setEditStars('overall',5)">★</span>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+      <div class="rating-group"><label>教學清晰度</label><div class="star-picker" id="esp-teaching" data-val="0"><span class="star-pick" onclick="setEditStars('teaching',1)">★</span><span class="star-pick" onclick="setEditStars('teaching',2)">★</span><span class="star-pick" onclick="setEditStars('teaching',3)">★</span><span class="star-pick" onclick="setEditStars('teaching',4)">★</span><span class="star-pick" onclick="setEditStars('teaching',5)">★</span></div></div>
+      <div class="rating-group"><label>評分公平性</label><div class="star-picker" id="esp-grading" data-val="0"><span class="star-pick" onclick="setEditStars('grading',1)">★</span><span class="star-pick" onclick="setEditStars('grading',2)">★</span><span class="star-pick" onclick="setEditStars('grading',3)">★</span><span class="star-pick" onclick="setEditStars('grading',4)">★</span><span class="star-pick" onclick="setEditStars('grading',5)">★</span></div></div>
+      <div class="rating-group"><label>作業負擔</label><div class="star-picker" id="esp-workload" data-val="0"><span class="star-pick" onclick="setEditStars('workload',1)">★</span><span class="star-pick" onclick="setEditStars('workload',2)">★</span><span class="star-pick" onclick="setEditStars('workload',3)">★</span><span class="star-pick" onclick="setEditStars('workload',4)">★</span><span class="star-pick" onclick="setEditStars('workload',5)">★</span></div></div>
+      <div class="rating-group"><label>師生互動</label><div class="star-picker" id="esp-interaction" data-val="0"><span class="star-pick" onclick="setEditStars('interaction',1)">★</span><span class="star-pick" onclick="setEditStars('interaction',2)">★</span><span class="star-pick" onclick="setEditStars('interaction',3)">★</span><span class="star-pick" onclick="setEditStars('interaction',4)">★</span><span class="star-pick" onclick="setEditStars('interaction',5)">★</span></div></div>
+    </div>
+    <div class="form-group" style="margin-bottom:12px"><label class="form-label">學期</label><input class="form-input" id="edit-r-semester" placeholder="e.g. 113下學期"></div>
+    <div class="form-group" style="margin-bottom:18px"><label class="form-label">評論內容 *</label><textarea class="form-input" id="edit-r-body" placeholder="分享你對這門課的看法…" style="min-height:90px"></textarea></div>
+    <div style="display:flex;gap:9px">
+      <button class="form-submit" onclick="submitEditReview()" style="flex:1">儲存修改</button>
+      <button onclick="closeEditReviewModal()" style="padding:10px 18px;border:1.5px solid var(--border);border-radius:9px;background:none;font-family:'Noto Sans TC',sans-serif;font-size:13px;cursor:pointer;color:var(--muted)">取消</button>
+    </div>
+  </div>
+</div>
+
 <!-- WRITE REVIEW MODAL -->
 <div class="review-modal" id="review-modal" onclick="if(event.target===this)closeReviewModal()">
   <div class="review-modal-box">
@@ -748,6 +985,8 @@ const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null, currentProfile = null;
 let allCourses = [], shortlistIds = new Set();
+let notifications = []; // {id, type, title, body, read, time, reviewId, courseId}
+let myReviews = [];
 let currentCourseId = null, currentProfessorId = null;
 let pendingAction = null, editingCourseId = null;
 let modLog = [];
