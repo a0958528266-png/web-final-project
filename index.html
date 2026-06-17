@@ -1688,40 +1688,88 @@ function highlightMatch(text, q) {
   if (idx === -1) return escHtml(text);
   return escHtml(text.slice(0, idx)) + '<em>' + escHtml(text.slice(idx, idx + q.length)) + '</em>' + escHtml(text.slice(idx + q.length));
 }
-
 function handleSearchInput(val) {
   const q = val.trim();
   const dd = document.getElementById('search-dropdown');
   if (!q) { closeDropdown(); return; }
-  const matches = (allCourses || []).filter(c =>
-    (c.name||'').toLowerCase().includes(q.toLowerCase()) ||
-    (c.professor||'').toLowerCase().includes(q.toLowerCase()) ||
-    (c.code||'').toLowerCase().includes(q.toLowerCase()) ||
-    (c.department||'').toLowerCase().includes(q.toLowerCase())
-  ).slice(0, 8);
 
-  if (!matches.length) {
-    dd.innerHTML = `<div class="sdrop-empty"><span class="sdrop-empty-icon">🔍</span>找不到符合「${escHtml(q)}」的課程</div>`;
+  const ql = q.toLowerCase();
+
+  // Separate courses vs teachers
+  const courseMatches = (allCourses || []).filter(c =>
+    (c.name||'').toLowerCase().includes(ql) ||
+    (c.code||'').toLowerCase().includes(ql) ||
+    (c.department||'').toLowerCase().includes(ql)
+  ).slice(0, 5);
+
+  // Collect unique teachers whose name matches
+  const teacherMap = new Map();
+  (allCourses || []).forEach(c => {
+    if (c.professor && c.professor.toLowerCase().includes(ql) && c.professor_id) {
+      if (!teacherMap.has(c.professor_id)) {
+        teacherMap.set(c.professor_id, {
+          id: c.professor_id,
+          name: c.professor,
+          title: c.professor_title || '',
+          dept: c.department || '',
+          courseCount: 1
+        });
+      } else {
+        teacherMap.get(c.professor_id).courseCount++;
+      }
+    }
+  });
+  const teacherMatches = [...teacherMap.values()].slice(0, 3);
+
+  if (!courseMatches.length && !teacherMatches.length) {
+    dd.innerHTML = `<div class="sdrop-empty"><span class="sdrop-empty-icon">🔍</span>找不到符合「${escHtml(q)}」的課程或教師</div>`;
   } else {
-    dd.innerHTML = matches.map(c => `
-      <div class="sdrop-item" onclick="openCourseFromSearch('${c.id}')">
-        <div class="sdrop-icon">🏛️</div>
-        <div class="sdrop-info">
-          <div class="sdrop-name">${highlightMatch(c.name, q)}</div>
-          <div class="sdrop-meta">
-            ${c.department ? `<span class="sdrop-dept">${escHtml(c.department)}</span>` : ''}
-            <span class="sdrop-class">🏛️ ${escHtml(c.code||'—')}</span>
-            <span class="sdrop-teacher">🎓 ${escHtml(c.professor||'未指定')}</span>
+    let html = '';
+
+    if (teacherMatches.length) {
+      html += `<div class="sdrop-section-label">教師</div>`;
+      html += teacherMatches.map(t => `
+        <div class="sdrop-item" onclick="openProfessor(${t.id})">
+          <div class="sdrop-icon" style="background:linear-gradient(135deg,#0E7C6B,#12A08A)">🎓</div>
+          <div class="sdrop-info">
+            <div class="sdrop-name">${highlightMatch(t.name, q)}${t.title ? `<span style="font-weight:400;color:var(--muted);font-size:12px;margin-left:6px">${escHtml(t.title)}</span>` : ''}</div>
+            <div class="sdrop-meta">
+              ${t.dept ? `<span class="sdrop-dept">${escHtml(t.dept)}</span>` : ''}
+              <span class="sdrop-class">📚 ${t.courseCount} 門課程</span>
+            </div>
           </div>
-        </div>
-        <span class="sdrop-arrow">›</span>
-      </div>`).join('') +
-      (matches.length < (allCourses||[]).filter(c =>
-        (c.name||'').toLowerCase().includes(q.toLowerCase()) ||
-        (c.professor||'').toLowerCase().includes(q.toLowerCase()) ||
-        (c.code||'').toLowerCase().includes(q.toLowerCase()) ||
-        (c.department||'').toLowerCase().includes(q.toLowerCase())
-      ).length ? `<div class="sdrop-footer" onclick="doSearch();closeDropdown()">查看全部結果 →</div>` : '');
+          <span class="sdrop-arrow">›</span>
+        </div>`).join('');
+    }
+
+    if (courseMatches.length) {
+      html += `<div class="sdrop-section-label">課程</div>`;
+      html += courseMatches.map(c => `
+        <div class="sdrop-item" onclick="openCourseFromSearch(${c.id})">
+          <div class="sdrop-icon">🏛️</div>
+          <div class="sdrop-info">
+            <div class="sdrop-name">${highlightMatch(c.name, q)}</div>
+            <div class="sdrop-meta">
+              ${c.department ? `<span class="sdrop-dept">${escHtml(c.department)}</span>` : ''}
+              <span class="sdrop-class">🏛️ ${escHtml(c.code||'—')}</span>
+              <span class="sdrop-teacher">🎓 ${escHtml(c.professor||'未指定')}</span>
+            </div>
+          </div>
+          <span class="sdrop-arrow">›</span>
+        </div>`).join('');
+    }
+
+    const totalMatches = (allCourses||[]).filter(c =>
+      (c.name||'').toLowerCase().includes(ql) ||
+      (c.professor||'').toLowerCase().includes(ql) ||
+      (c.code||'').toLowerCase().includes(ql) ||
+      (c.department||'').toLowerCase().includes(ql)
+    ).length;
+    if (courseMatches.length + teacherMatches.length < totalMatches) {
+      html += `<div class="sdrop-footer" onclick="doSearch();closeDropdown()">查看全部結果 →</div>`;
+    }
+
+    dd.innerHTML = html;
   }
   dd.classList.add('open');
 }
