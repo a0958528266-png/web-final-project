@@ -1684,12 +1684,16 @@ async function submitSignup(){
   else{showToast('請至信箱確認帳號！','success');closeModal();}
 }
 
-async function forgotPassword(){
-  const email=document.getElementById('login-email').value.trim();
-  if(!email){showToast('請先輸入電子郵件','error');return;}
-  const{error}=await sb.auth.resetPasswordForEmail(email);
-  if(error) showToast(error.message,'error');
-  else showToast('密碼重設信已寄出！','success');
+async function forgotPassword() {
+  const email = document.getElementById('login-email').value.trim();
+  if (!email) { showToast('請先輸入電子郵件', 'error'); return; }
+  
+  const { error } = await sb.auth.resetPasswordForEmail(email, {
+    redirectTo: 'https://a0958528266-png.github.io/web-final-project/'  // trailing slash
+  });
+  
+  if (error) showToast(error.message, 'error');
+  else showToast('密碼重設信已寄出！', 'success');
 }
 
 // ── LIVE SEARCH DROPDOWN ──────────────────────────────────────
