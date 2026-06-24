@@ -776,24 +776,9 @@ body.sidebar-open nav{padding-left:calc(340px + 2rem)}
         <div class="form-group"><label class="form-label">學分</label><input class="form-input" id="a-credits" type="number" value="3" min="1" max="10"></div>
         <div class="form-group full">
           <label class="form-label">課程時間</label>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-            <div>
-              <div style="font-size:11px;color:var(--muted);margin-bottom:5px">上課日</div>
-              <div style="display:flex;flex-wrap:wrap;gap:5px" id="day-picker">
-                <button type="button" class="day-btn" data-day="Mon">一</button>
-                <button type="button" class="day-btn" data-day="Tue">二</button>
-                <button type="button" class="day-btn" data-day="Wed">三</button>
-                <button type="button" class="day-btn" data-day="Thu">四</button>
-                <button type="button" class="day-btn" data-day="Fri">五</button>
-                <button type="button" class="day-btn" data-day="Sat">六</button>
-              </div>
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-              <div><div style="font-size:11px;color:var(--muted);margin-bottom:5px">開始</div><input type="time" class="form-input" id="a-time-start" onchange="updateSchedulePreview()"></div>
-              <div><div style="font-size:11px;color:var(--muted);margin-bottom:5px">結束</div><input type="time" class="form-input" id="a-time-end" onchange="updateSchedulePreview()"></div>
-            </div>
-          </div>
-          <div style="margin-top:6px;font-size:11px;color:var(--muted)">預覽：<strong id="schedule-preview" style="color:var(--navy)">—</strong></div>
+          <div id="schedule-segments"></div>
+          <button type="button" onclick="addScheduleSegment()" style="margin-top:8px;background:none;border:1.5px dashed var(--border);border-radius:9px;padding:6px 14px;font-family:'Noto Sans TC',sans-serif;font-size:12px;color:var(--teal);cursor:pointer;width:100%;transition:all .2s" onmouseover="this.style.borderColor='var(--teal)'" onmouseout="this.style.borderColor='var(--border)'">＋ 新增時段</button>
+          <div style="margin-top:7px;font-size:11px;color:var(--muted)">預覽：<strong id="schedule-preview" style="color:var(--navy)">—</strong></div>
         </div>
         <div class="form-group"><label class="form-label">上課語言</label><select class="form-input" id="a-lang"><option>Mandarin</option><option>English</option><option>Both</option></select></div>
         <div class="form-group"><label class="form-label">出席政策</label><select class="form-input" id="a-attendance"><option>Occasional</option><option>Every class</option><option>No roll call</option></select></div>
@@ -1448,23 +1433,96 @@ async function reportReview(reviewId,btn){
 }
 
 // ── SCHEDULE BUILDER ─────────────────────────────────────────
-document.addEventListener('click',e=>{if(e.target.classList.contains('day-btn')){e.target.classList.toggle('selected');updateSchedulePreview();}});
-document.addEventListener('change',e=>{if(e.target.id==='a-time-start'||e.target.id==='a-time-end') updateSchedulePreview();});
+let scheduleSegmentCount = 0;
+
+function buildSegmentHTML(idx, days=[], pStart='', pEnd='') {
+  const dayDefs = [['Mon','一'],['Tue','二'],['Wed','三'],['Thu','四'],['Fri','五'],['Sat','六']];
+  const periodOpts = Array.from({length:14},(_,i)=>
+    `<option value="${i+1}" ${pStart===(i+1)?'selected':''}>${i+1}</option>`).join('');
+  const periodOptsEnd = Array.from({length:14},(_,i)=>
+    `<option value="${i+1}" ${pEnd===(i+1)?'selected':pEnd===''&&pStart===(i+1)?'selected':''}>${i+1}</option>`).join('');
+  return `<div class="schedule-seg" id="seg-${idx}" style="background:var(--ice);border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <span style="font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.4px;text-transform:uppercase">時段 ${idx+1}</span>
+      <button type="button" onclick="removeScheduleSegment(${idx})" style="background:none;border:none;color:var(--light);cursor:pointer;font-size:16px;line-height:1;padding:0" title="移除此時段">×</button>
+    </div>
+    <div style="display:grid;grid-template-columns:auto 1fr 1fr;gap:10px;align-items:end">
+      <div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:5px">上課日</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px">
+          ${dayDefs.map(([d,lbl])=>`<button type="button" class="day-btn seg-day-btn" data-seg="${idx}" data-day="${d}" ${days.includes(d)?'style="background:var(--navy);border-color:var(--navy);color:#fff"':''} onclick="toggleSegDay(this)">${lbl}</button>`).join('')}
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:5px">開始節次</div>
+        <select class="form-input seg-period-start" data-seg="${idx}" onchange="updateSchedulePreview()">
+          <option value="">—</option>${periodOpts}
+        </select>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:5px">結束節次 <span style="color:var(--light)">(選填)</span></div>
+        <select class="form-input seg-period-end" data-seg="${idx}" onchange="updateSchedulePreview()">
+          <option value="">—</option>${periodOptsEnd}
+        </select>
+      </div>
+    </div>
+  </div>`;
+}
+
+function addScheduleSegment(days=[], pStart='', pEnd='') {
+  const idx = scheduleSegmentCount++;
+  const container = document.getElementById('schedule-segments');
+  if (!container) return;
+  const div = document.createElement('div');
+  div.innerHTML = buildSegmentHTML(idx, days, pStart, pEnd);
+  container.appendChild(div.firstElementChild);
+  updateSchedulePreview();
+}
+
+function removeScheduleSegment(idx) {
+  const el = document.getElementById(`seg-${idx}`);
+  if (el) el.remove();
+  updateSchedulePreview();
+}
+
+function toggleSegDay(btn) {
+  const active = btn.style.background === 'var(--navy)' || btn.classList.contains('selected');
+  if (active) {
+    btn.style.background=''; btn.style.borderColor=''; btn.style.color='';
+  } else {
+    btn.style.background='var(--navy)'; btn.style.borderColor='var(--navy)'; btn.style.color='#fff';
+  }
+  updateSchedulePreview();
+}
+
 function updateSchedulePreview(){
-  const days=[...document.querySelectorAll('.day-btn.selected')].map(b=>b.dataset.day).join('/');
-  const start=document.getElementById('a-time-start')?.value||'';
-  const end=document.getElementById('a-time-end')?.value||'';
-  const time=start&&end?`${start} – ${end}`:(start||end||'');
-  const el=document.getElementById('schedule-preview');
-  if(el) el.textContent=(days&&time?`${days} ${time}`:days||time||'—');
+  const el = document.getElementById('schedule-preview');
+  if (el) el.textContent = getScheduleValue() || '—';
 }
+
 function getScheduleValue(){
-  const days=[...document.querySelectorAll('.day-btn.selected')].map(b=>b.dataset.day).join('/');
-  const start=document.getElementById('a-time-start')?.value||'';
-  const end=document.getElementById('a-time-end')?.value||'';
-  const time=start&&end?`${start} – ${end}`:(start||end||'');
-  return days&&time?`${days} ${time}`:(days||time||null);
+  const segs = [...document.querySelectorAll('.schedule-seg')];
+  const parts = [];
+  segs.forEach(seg => {
+    const idx = seg.id.replace('seg-','');
+    const days = [...seg.querySelectorAll('.seg-day-btn')]
+      .filter(b => b.style.background === 'var(--navy)')
+      .map(b => b.dataset.day);
+    const pStart = seg.querySelector('.seg-period-start')?.value;
+    const pEnd   = seg.querySelector('.seg-period-end')?.value;
+    if (!days.length || !pStart) return;
+    const periodStr = (pEnd && pEnd !== pStart) ? `${pStart}-${pEnd}` : pStart;
+    days.forEach(d => parts.push(`${d}:${periodStr}`));
+  });
+  return parts.length ? parts.join(',') : null;
 }
+
+// init: always start with one empty segment
+document.addEventListener('DOMContentLoaded', () => {
+  if (document.getElementById('schedule-segments') && scheduleSegmentCount === 0) {
+    addScheduleSegment();
+  }
+});
 
 // ── ADMIN ─────────────────────────────────────────────────────
 async function loadAdminData(){
@@ -1514,17 +1572,26 @@ async function startEditCourse(id){
   document.getElementById('a-attendance').value=course.attendance||'Occasional';
   document.getElementById('a-syllabus').value=course.syllabus_url||'';
   document.getElementById('a-desc').value=course.description||'';
-  // Parse schedule
+  // Parse schedule into segments
+  document.getElementById('schedule-segments').innerHTML = '';
+  scheduleSegmentCount = 0;
   if(course.schedule){
-    const dayMatch=course.schedule.match(/^([A-Za-z/]+)/);
-    const timeMatch=course.schedule.match(/(\d{2}:\d{2})\s*[–-]\s*(\d{2}:\d{2})/);
-    if(dayMatch) {
-      document.querySelectorAll('.day-btn').forEach(b=>b.classList.remove('selected'));
-      dayMatch[1].split('/').forEach(d=>{ const btn=document.querySelector(`.day-btn[data-day="${d}"]`); if(btn) btn.classList.add('selected'); });
-    }
-    if(timeMatch){document.getElementById('a-time-start').value=timeMatch[1];document.getElementById('a-time-end').value=timeMatch[2];}
+    // Each comma-separated part is one segment, e.g. "Mon:6-7" or "Wed:2-4"
+    // Group parts that share the same period range into one segment with multiple days
+    const segMap = {}; // key: "pStart-pEnd" → [days]
+    course.schedule.split(',').forEach(part => {
+      const m = part.trim().match(/^([A-Za-z]+):(\d+)(?:-(\d+))?$/);
+      if (!m) return;
+      const day = m[1], pStart = m[2], pEnd = m[3]||m[2];
+      const key = `${pStart}-${pEnd}`;
+      if (!segMap[key]) segMap[key] = {pStart, pEnd, days:[]};
+      segMap[key].days.push(day);
+    });
+    Object.values(segMap).forEach(({days, pStart, pEnd}) => {
+      addScheduleSegment(days, parseInt(pStart), pEnd !== pStart ? parseInt(pEnd) : '');
+    });
   }
-  updateSchedulePreview();
+  if(scheduleSegmentCount === 0) addScheduleSegment();
   document.getElementById('course-form-title').textContent='編輯課程';
   document.getElementById('course-save-btn').textContent='儲存修改';
   document.getElementById('course-cancel-btn').style.display='inline-block';
@@ -1536,9 +1603,9 @@ async function startEditCourse(id){
 function cancelEditCourse(){
   editingCourseId=null;
   ['a-name','a-code','a-syllabus','a-desc'].forEach(id=>document.getElementById(id).value='');
-  document.querySelectorAll('.day-btn.selected').forEach(b=>b.classList.remove('selected'));
-  document.getElementById('a-time-start').value='';
-  document.getElementById('a-time-end').value='';
+  // Reset schedule segments to one empty row
+  const container = document.getElementById('schedule-segments');
+  if (container) { container.innerHTML=''; scheduleSegmentCount=0; addScheduleSegment(); }
   document.getElementById('schedule-preview').textContent='—';
   document.getElementById('course-form-title').textContent='新增課程';
   document.getElementById('course-save-btn').textContent='新增課程';
