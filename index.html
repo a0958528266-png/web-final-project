@@ -1398,24 +1398,47 @@ function setStars(key,val){
   el.dataset.val=val;
   el.querySelectorAll('.star-pick').forEach((s,i)=>s.classList.toggle('on',i<val));
 }
-async function submitReview(){
-  if(!currentUser) return;
-  const overall=parseInt(document.getElementById('sp-overall').dataset.val);
-  const body=document.getElementById('r-body').value.trim();
-  if(!overall){showToast('請選擇整體評分','error');return;}
-  if(!body){showToast('請填寫評論內容','error');return;}
-  const{error}=await sb.from('reviews').insert({
-    course_id:currentCourseId,user_id:currentUser.id,body,
-    semester:document.getElementById('r-semester').value.trim()||null,
-    is_anonymous:document.getElementById('r-anon').checked,
-    rating_overall:overall,
-    rating_teaching:parseInt(document.getElementById('sp-teaching').dataset.val)||null,
-    rating_grading:parseInt(document.getElementById('sp-grading').dataset.val)||null,
-    rating_workload:parseInt(document.getElementById('sp-workload').dataset.val)||null,
-    rating_interaction:parseInt(document.getElementById('sp-interaction').dataset.val)||null,
+async function submitReview() {
+  if (!currentUser) return;
+  const overall = parseInt(document.getElementById('sp-overall').dataset.val);
+  const body = document.getElementById('r-body').value.trim();
+  if (!overall) { showToast('請選擇整體評分', 'error'); return; }
+  if (!body) { showToast('請填寫評論內容', 'error'); return; }
+
+  // ── AI MODERATION via Supabase Edge Function ─────────────────
+  showToast('審核中，請稍候…');
+  try {
+    const modRes = await fetch(`${SUPABASE_URL}/functions/v1/moderate-review`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      },
+      body: JSON.stringify({ reviewText: body }),
+    });
+    const result = await modRes.json();
+    if (!result.approved) {
+      showToast(`評論未通過審核：${result.reason || '內容不符合社群規範'}`, 'error');
+      return;
+    }
+  } catch (e) {
+    console.warn('Moderation error, allowing through:', e);
+    // Fail open
+  }
+  // ── END MODERATION ───────────────────────────────────────────
+
+  const { error } = await sb.from('reviews').insert({
+    course_id: currentCourseId, user_id: currentUser.id, body,
+    semester: document.getElementById('r-semester').value.trim() || null,
+    is_anonymous: document.getElementById('r-anon').checked,
+    rating_overall: overall,
+    rating_teaching: parseInt(document.getElementById('sp-teaching').dataset.val) || null,
+    rating_grading: parseInt(document.getElementById('sp-grading').dataset.val) || null,
+    rating_workload: parseInt(document.getElementById('sp-workload').dataset.val) || null,
+    rating_interaction: parseInt(document.getElementById('sp-interaction').dataset.val) || null,
   });
-  if(error){showToast(error.code==='23505'?'你已評論過此課程':'送出失敗','error');return;}
-  showToast('評論已送出！','success');
+  if (error) { showToast(error.code === '23505' ? '你已評論過此課程' : '送出失敗', 'error'); return; }
+  showToast('評論已送出！', 'success');
   closeReviewModal();
   await loadCourses();
   await loadReviews(currentCourseId);
