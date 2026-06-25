@@ -1402,11 +1402,12 @@ async function submitReview() {
   if (!currentUser) return;
   const overall = parseInt(document.getElementById('sp-overall').dataset.val);
   const body = document.getElementById('r-body').value.trim();
+  
   if (!overall) { showToast('請選擇整體評分', 'error'); return; }
   if (!body) { showToast('請填寫評論內容', 'error'); return; }
 
-  // ── AI MODERATION via Supabase Edge Function ─────────────────
-  showToast('審核中，請稍候…');
+  showToast('AI 審核中，請稍候…');
+  
   try {
     const modRes = await fetch(`${SUPABASE_URL}/functions/v1/moderate-review`, {
       method: 'POST',
@@ -1416,19 +1417,22 @@ async function submitReview() {
       },
       body: JSON.stringify({ reviewText: body }),
     });
+    
     const result = await modRes.json();
-    if (!result.approved) {
+    
+    if (result && result.approved === false) {
       showToast(`評論未通過審核：${result.reason || '內容不符合社群規範'}`, 'error');
       return;
     }
+    
   } catch (e) {
-    console.warn('Moderation error, allowing through:', e);
-    // Fail open
+    console.warn(e);
   }
-  // ── END MODERATION ───────────────────────────────────────────
 
   const { error } = await sb.from('reviews').insert({
-    course_id: currentCourseId, user_id: currentUser.id, body,
+    course_id: currentCourseId, 
+    user_id: currentUser.id, 
+    body,
     semester: document.getElementById('r-semester').value.trim() || null,
     is_anonymous: document.getElementById('r-anon').checked,
     rating_overall: overall,
@@ -1437,8 +1441,13 @@ async function submitReview() {
     rating_workload: parseInt(document.getElementById('sp-workload').dataset.val) || null,
     rating_interaction: parseInt(document.getElementById('sp-interaction').dataset.val) || null,
   });
-  if (error) { showToast(error.code === '23505' ? '你已評論過此課程' : '送出失敗', 'error'); return; }
-  showToast('評論已送出！', 'success');
+
+  if (error) { 
+    showToast(error.code === '23505' ? '你已評論過此課程' : '送出失敗', 'error'); 
+    return; 
+  }
+  
+  showToast('評論已成功發布！', 'success');
   closeReviewModal();
   await loadCourses();
   await loadReviews(currentCourseId);
