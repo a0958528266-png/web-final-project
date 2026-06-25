@@ -1412,7 +1412,7 @@ async function submitReview() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${sb_publishable_fTk_QA8PCPjC7EIVw0PAIg_Hoo6FAfu}`,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
       },
       body: JSON.stringify({ reviewText: body }),
     });
