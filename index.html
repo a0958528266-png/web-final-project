@@ -1402,37 +1402,37 @@ async function submitReview() {
   if (!currentUser) return;
   const overall = parseInt(document.getElementById('sp-overall').dataset.val);
   const body = document.getElementById('r-body').value.trim();
-  
   if (!overall) { showToast('請選擇整體評分', 'error'); return; }
   if (!body) { showToast('請填寫評論內容', 'error'); return; }
 
-  showToast('AI 審核中，請稍候…');
-  
+  const banned = [
+    'fuck','fucking','shit','bitch','asshole','idiot','stupid','dumb','moron','retard','wtf','loser','pathetic','useless','trash','damn','crap','bastard',
+    '笨蛋','白痴','廢物','垃圾人','蠢貨','幹','他媽','去死','賤人','混蛋','爛透','廢渣','死去','臭','賤'
+  ];
+  const foundWord = banned.find(w => body.toLowerCase().includes(w.toLowerCase()));
+  if (foundWord) {
+    showToast('評論包含不當用語，無法送出，請修改後再試', 'error');
+    return;
+  }
+
+  showToast('審核中，請稍候…');
   try {
     const modRes = await fetch(`${SUPABASE_URL}/functions/v1/moderate-review`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ reviewText: body }),
     });
-    
     const result = await modRes.json();
-    
-    if (result && result.approved === false) {
+    if (!result.approved) {
       showToast(`評論未通過審核：${result.reason || '內容不符合社群規範'}`, 'error');
       return;
     }
-    
   } catch (e) {
-    console.warn(e);
+    console.warn('Moderation error, allowing through:', e);
   }
 
   const { error } = await sb.from('reviews').insert({
-    course_id: currentCourseId, 
-    user_id: currentUser.id, 
-    body,
+    course_id: currentCourseId, user_id: currentUser.id, body,
     semester: document.getElementById('r-semester').value.trim() || null,
     is_anonymous: document.getElementById('r-anon').checked,
     rating_overall: overall,
@@ -1441,13 +1441,8 @@ async function submitReview() {
     rating_workload: parseInt(document.getElementById('sp-workload').dataset.val) || null,
     rating_interaction: parseInt(document.getElementById('sp-interaction').dataset.val) || null,
   });
-
-  if (error) { 
-    showToast(error.code === '23505' ? '你已評論過此課程' : '送出失敗', 'error'); 
-    return; 
-  }
-  
-  showToast('評論已成功發布！', 'success');
+  if (error) { showToast(error.code === '23505' ? '你已評論過此課程' : '送出失敗', 'error'); return; }
+  showToast('評論已送出！', 'success');
   closeReviewModal();
   await loadCourses();
   await loadReviews(currentCourseId);
